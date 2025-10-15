@@ -169,7 +169,7 @@
             </div>
 
             <!-- Ovarian Cancer HER2+ -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="selectIndication('ovarian')">
+            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="navigateToIndication('ovarian-cancer')">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-lg font-semibold">Ovarian Cancer HER2+</h3>
                 </div>
@@ -180,7 +180,7 @@
             </div>
 
             <!-- IgAN -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="selectIndication('igan')">
+            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="navigateToIndication('igan')">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-lg font-semibold">IgAN</h3>
                 </div>
@@ -191,7 +191,7 @@
             </div>
 
             <!-- Breast Cancer -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="selectIndication('breast')">
+            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="navigateToIndication('breast-cancer')">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-lg font-semibold">Breast Cancer</h3>
                 </div>
@@ -230,17 +230,19 @@
     </div>
 
     <script>
-        function selectIndication(indication) {
+        function navigateToIndication(indication) {
             const indicationNames = {
-                'ovarian': 'Ovarian Cancer HER2+',
+                'ovarian-cancer': 'Ovarian Cancer',
                 'igan': 'IgAN',
-                'breast': 'Breast Cancer'
+                'breast-cancer': 'Breast Cancer'
             };
 
-            alert(`Selected indication: ${indicationNames[indication]}`);
+            // Store the selected indication in sessionStorage
+            sessionStorage.setItem('selectedIndication', indication);
+            sessionStorage.setItem('indicationDisplayName', indicationNames[indication]);
 
-            // You can add more logic here to navigate to specific indication pages
-            console.log(`Navigating to ${indication} analysis page`);
+            // Navigate to the indication analysis page
+            window.location.href = `indication-analysis.html?indication=${indication}`;
         }
 
         function startAnalysis() {

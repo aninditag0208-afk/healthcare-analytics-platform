@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - Healthcare Analytics Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="gemini-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .sidebar-bg {
+            background: linear-gradient(180deg, #e5e7eb 0%, #f9fafb 100%);
+        }
+
+        .chat-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .insights-panel {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .chart-container {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #2dd4bf 0%, #0d4f4f 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .chat-message {
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+        }
+
+        .collapse-btn {
+            transition: transform 0.3s ease;
+        }
+
+        .collapsed .collapse-btn {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .collapsed .collapsible-content {
+            height: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        .breadcrumb {
+            background: rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="h-screen flex bg-gray-50">
+    <!-- Sidebar -->
+    <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col">
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-300">
+            <div class="flex items-center mb-6">
+                <div class="w-8 h-8 bg-gray-800 rounded flex items-center justify-center mr-3">
+                    <span class="text-white text-sm font-bold">ZS</span>
+                </div>
+                <button class="ml-auto text-gray-500 hover:text-gray-700" onclick="goBack()">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+            </div>
+
+            <button class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors">
+                <i class="fas fa-plus mr-3 text-gray-400"></i>
+                New Analysis
+            </button>
+        </div>
+
+        <!-- Search -->
+        <div class="p-6 border-b border-gray-300">
+            <div class="relative">
+                <input type="text" placeholder="Search" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 pl-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Analyses Section -->
+        <div class="flex-1 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Analyses</h3>
+
+            <!-- Current Analysis (highlighted) -->
+            <div class="space-y-4">
+                <div class="text-sm bg-teal-50 border border-teal-200 rounded-lg p-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="font-medium text-teal-800" id="currentAnalysisTitle">Loading...</div>
+                        <div class="flex items-center">
+                            <span class="text-orange-500 text-xs mr-2">Running</span>
+                            <div class="status-dot bg-orange-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="text-teal-600 text-xs" id="currentAnalysisTime">Just now</div>
+                </div>
+
+                <!-- Previous analyses -->
+                <div class="text-sm">
+                    <div class="font-medium text-gray-800 mb-1">5 payers?</div>
+                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
+                </div>
+
+                <div class="text-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="font-medium text-gray-800">What are the top reasons for denials within UHC?</div>
+                        <div class="flex items-center">
+                            <span class="text-green-500 text-xs mr-2">Completed</span>
+                            <div class="status-dot bg-green-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
+                </div>
+
+                <div class="text-sm">
+                    <div class="font-medium text-gray-800 mb-1">Market Structure analysis</div>
+                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="p-6 border-t border-gray-300">
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 hover:text-gray-700 text-xl">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="text-gray-500 hover:text-gray-700 text-xl">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+                <div class="w-8 h-8 bg-gray-400 rounded-full ml-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb px-6 py-4 border-b border-gray-200">
+            <nav class="flex items-center space-x-2 text-sm text-gray-600">
+                <a href="index.html" class="hover:text-gray-800 transition-colors">
+                    <i class="fas fa-home mr-1"></i>
+                    Home
+                </a>
+                <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+                <a href="#" onclick="goBack()" class="hover:text-gray-800 transition-colors" id="indicationBreadcrumb">Loading...</a>
+                <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+                <span class="text-gray-800 font-medium" id="analysisBreadcrumb">Loading...</span>
+            </nav>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="flex-1 flex">
+            <!-- Main Dashboard Area -->
+            <div class="flex-1 p-6 space-y-6">
+                <!-- Header with Key Metrics -->
+                <div class="mb-6">
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2" id="dashboardTitle">Loading...</h1>
+                    <p class="text-gray-600" id="dashboardSubtitle">Analyzing patient journey data...</p>
+                </div>
+
+                <!-- Key Metrics Row -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-users text-xl"></i>
+                            <span class="text-xs opacity-80">Total Patients</span>
+                        </div>
+                        <div class="text-2xl font-bold" id="totalPatients">-</div>
+                        <div class="text-xs opacity-80">+12% vs last quarter</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-chart-line text-xl"></i>
+                            <span class="text-xs opacity-80">Market Share</span>
+                        </div>
+                        <div class="text-2xl font-bold" id="marketShare">-</div>
+                        <div class="text-xs opacity-80">+3.2% vs last quarter</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-clock text-xl"></i>
+                            <span class="text-xs opacity-80">Avg Time to Treatment</span>
+                        </div>
+                        <div class="text-2xl font-bold" id="timeToTreatment">-</div>
+                        <div class="text-xs opacity-80">-8 days vs benchmark</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="flex items-center justify-between mb-2">
+                            <i class="fas fa-percentage text-xl"></i>
+                            <span class="text-xs opacity-80">Treatment Persistence</span>
+                        </div>
+                        <div class="text-2xl font-bold" id="persistence">-</div>
+                        <div class="text-xs opacity-80">Above industry avg</div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Market Share Chart -->
+                    <div class="chart-container">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Market Share Distribution</h3>
+                        <canvas id="marketShareChart" width="400" height="300"></canvas>
+                    </div>
+
+                    <!-- Treatment Pathway Chart -->
+                    <div class="chart-container">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Treatment Pathway Flow</h3>
+                        <canvas id="pathwayChart" width="400" height="300"></canvas>
+                    </div>
+
+                    <!-- Payer Analysis Chart -->
+                    <div class="chart-container">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Payer Coverage Analysis</h3>
+                        <canvas id="payerChart" width="400" height="300"></canvas>
+                    </div>
+
+                    <!-- Outcome Trends Chart -->
+                    <div class="chart-container">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Outcome Trends</h3>
+                        <canvas id="outcomeChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Key Insights (Collapsible) -->
+            <div class="w-80 border-l border-gray-200 insights-panel" id="insightsPanel">
+                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-800">Key Insights</h3>
+                        <button onclick="toggleInsights()" class="collapse-btn text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-chevron-left text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="collapsible-content p-4 space-y-4" id="insightsContent">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-lightbulb text-blue-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-blue-800 mb-1">Market Opportunity</h4>
+                                <p class="text-sm text-blue-700">23% of eligible patients remain untreated, representing a significant growth opportunity.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-yellow-800 mb-1">Access Barrier</h4>
+                                <p class="text-sm text-yellow-700">Prior authorization delays average 12 days across major payers.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-green-800 mb-1">Strong Performance</h4>
+                                <p class="text-sm text-green-700">Treatment persistence rates exceed industry benchmarks by 15%.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-chart-line text-purple-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-purple-800 mb-1">Growth Trend</h4>
+                                <p class="text-sm text-purple-700">Monthly patient starts increased 18% quarter-over-quarter.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-clock text-red-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-red-800 mb-1">Time to Treatment</h4>
+                                <p class="text-sm text-red-700">Regional variations show 3-week delays in rural areas.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-users text-gray-500 mt-1"></i>
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-1">Patient Demographics</h4>
+                                <p class="text-sm text-gray-700">65% female, median age 58, predominantly commercial payers.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Panel (Collapsible) -->
+        <div class="chat-panel border-t border-gray-200" id="chatPanel">
+            <div class="p-4 bg-gray-50 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-robot text-teal-500"></i>
+                        <h3 class="text-lg font-semibold text-gray-800">AI Assistant</h3>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Online</span>
+                    </div>
+                    <button onclick="toggleChat()" class="collapse-btn text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-chevron-up text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="collapsible-content" id="chatContent" style="height: 300px;">
+                <div class="p-4 h-64 overflow-y-auto" id="chatMessages">
+                    <div class="chat-message mb-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-gray-100 rounded-lg p-3 max-w-md">
+                                    <p class="text-sm text-gray-800">Hello! I'm here to help you analyze your data. You can ask me questions about market access, patient journeys, treatment patterns, or any other insights you need.</p>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">Just now</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-gray-200">
+                    <div class="flex space-x-2">
+                        <input
+                            type="text"
+                            placeholder="Ask me anything about your analysis..."
+                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            id="chatInput"
+                        >
+                        <button
+                            onclick="sendMessage()"
+                            class="bg-teal-500 hover:bg-teal-600 text-white rounded-lg px-4 py-2 transition-colors"
+                            id="sendButton"
+                        >
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let chatCollapsed = false;
+        let insightsCollapsed = false;
+        let geminiAPI;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSessionData();
+            generateMockData();
+            initializeCharts();
+            setupChatInput();
+            initializeGeminiAPI();
+        });
+
+        function initializeGeminiAPI() {
+            if (typeof GeminiAPI !== 'undefined') {
+                geminiAPI = new GeminiAPI();
+                console.log('Gemini API initialized');
+            } else {
+                console.log('Gemini API not available, using mock responses');
+            }
+        }
+
+        function loadSessionData() {
+            const indication = sessionStorage.getItem('selectedIndication');
+            const indicationDisplayName = sessionStorage.getItem('indicationDisplayName');
+            const analysisType = sessionStorage.getItem('selectedAnalysisType');
+            const analysisDisplayName = sessionStorage.getItem('analysisDisplayName');
+
+            // Update breadcrumb and titles
+            document.getElementById('indicationBreadcrumb').textContent = indicationDisplayName || 'Unknown Indication';
+            document.getElementById('analysisBreadcrumb').textContent = analysisDisplayName || 'Unknown Analysis';
+            document.getElementById('dashboardTitle').textContent = analysisDisplayName || 'Analysis Dashboard';
+            document.getElementById('currentAnalysisTitle').textContent = `${indicationDisplayName} - ${analysisDisplayName}`;
+
+            // Update subtitle based on analysis type
+            const subtitles = {
+                'market-access': 'Analyzing payer coverage, formulary positioning, and access barriers',
+                'referral-pattern': 'Mapping referral pathways and provider networks',
+                'care-gap': 'Identifying gaps in care delivery and improvement opportunities',
+                'treatment-pathway': 'Analyzing treatment sequences and switching patterns',
+                'market-structure': 'Evaluating competitive landscape and market dynamics',
+                'persistency': 'Assessing treatment adherence and persistence patterns'
+            };
+
+            document.getElementById('dashboardSubtitle').textContent = subtitles[analysisType] || 'Analyzing patient journey data...';
+        }
+
+        function generateMockData() {
+            // Generate realistic mock data based on indication
+            const indication = sessionStorage.getItem('selectedIndication');
+            const analysisType = sessionStorage.getItem('selectedAnalysisType');
+
+            // Mock data generation logic
+            const mockData = {
+                'ovarian-cancer': {
+                    totalPatients: '2,847',
+                    marketShare: '34.2%',
+                    timeToTreatment: '21 days',
+                    persistence: '78%'
+                },
+                'breast-cancer': {
+                    totalPatients: '15,623',
+                    marketShare: '42.8%',
+                    timeToTreatment: '18 days',
+                    persistence: '85%'
+                },
+                'igan': {
+                    totalPatients: '892',
+                    marketShare: '28.6%',
+                    timeToTreatment: '35 days',
+                    persistence: '72%'
+                }
+            };
+
+            const data = mockData[indication] || mockData['ovarian-cancer'];
+
+            document.getElementById('totalPatients').textContent = data.totalPatients;
+            document.getElementById('marketShare').textContent = data.marketShare;
+            document.getElementById('timeToTreatment').textContent = data.timeToTreatment;
+            document.getElementById('persistence').textContent = data.persistence;
+        }
+
+        function initializeCharts() {
+            // Market Share Chart
+            const marketCtx = document.getElementById('marketShareChart').getContext('2d');
+            new Chart(marketCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Our Product', 'Competitor A', 'Competitor B', 'Others'],
+                    datasets: [{
+                        data: [34.2, 28.5, 22.1, 15.2],
+                        backgroundColor: ['#2dd4bf', '#0d4f4f', '#7dd3fc', '#94a3b8']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Treatment Pathway Chart
+            const pathwayCtx = document.getElementById('pathwayChart').getContext('2d');
+            new Chart(pathwayCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['1st Line', '2nd Line', '3rd Line', '4th+ Line'],
+                    datasets: [{
+                        label: 'Patients',
+                        data: [2847, 1823, 892, 234],
+                        backgroundColor: '#2dd4bf'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Payer Chart
+            const payerCtx = document.getElementById('payerChart').getContext('2d');
+            new Chart(payerCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Commercial', 'Medicare', 'Medicaid', 'Other'],
+                    datasets: [{
+                        data: [45.2, 32.8, 15.6, 6.4],
+                        backgroundColor: ['#0d4f4f', '#2dd4bf', '#7dd3fc', '#94a3b8']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Outcome Trends Chart
+            const outcomeCtx = document.getElementById('outcomeChart').getContext('2d');
+            new Chart(outcomeCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Patient Starts',
+                        data: [234, 287, 345, 423, 512, 587],
+                        borderColor: '#2dd4bf',
+                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function toggleChat() {
+            const chatPanel = document.getElementById('chatPanel');
+            const chatContent = document.getElementById('chatContent');
+            const collapseBtn = chatPanel.querySelector('.collapse-btn i');
+
+            chatCollapsed = !chatCollapsed;
+
+            if (chatCollapsed) {
+                chatContent.style.height = '0';
+                collapseBtn.className = 'fas fa-chevron-down text-sm';
+            } else {
+                chatContent.style.height = '300px';
+                collapseBtn.className = 'fas fa-chevron-up text-sm';
+            }
+        }
+
+        function toggleInsights() {
+            const insightsPanel = document.getElementById('insightsPanel');
+            const insightsContent = document.getElementById('insightsContent');
+
+            insightsCollapsed = !insightsCollapsed;
+
+            if (insightsCollapsed) {
+                insightsPanel.classList.add('collapsed');
+                insightsPanel.style.width = '60px';
+            } else {
+                insightsPanel.classList.remove('collapsed');
+                insightsPanel.style.width = '320px';
+            }
+        }
+
+        function setupChatInput() {
+            const chatInput = document.getElementById('chatInput');
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
+        async function sendMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const sendButton = document.getElementById('sendButton');
+            const message = chatInput.value.trim();
+
+            if (!message) return;
+
+            // Disable input and button
+            chatInput.disabled = true;
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            // Add user message
+            addMessageToChat('user', message);
+            chatInput.value = '';
+
+            // Show typing indicator
+            addTypingIndicator();
+
+            try {
+                let response;
+                if (geminiAPI) {
+                    // Use Gemini API
+                    response = await geminiAPI.generateResponse(message);
+                } else {
+                    // Fallback to mock response
+                    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
+                    response = generateAIResponse(message);
+                }
+
+                removeTypingIndicator();
+                addMessageToChat('ai', response);
+            } catch (error) {
+                console.error('Error generating AI response:', error);
+                removeTypingIndicator();
+                addMessageToChat('ai', 'I apologize, but I encountered an error processing your request. Please try again or rephrase your question.');
+            } finally {
+                // Re-enable input and button
+                chatInput.disabled = false;
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                chatInput.focus();
+            }
+        }
+
+        function addMessageToChat(sender, message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message mb-4';
+
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="flex items-start space-x-3 justify-end">
+                        <div class="flex-1 text-right">
+                            <div class="bg-teal-500 text-white rounded-lg p-3 max-w-md inline-block">
+                                <p class="text-sm">${message}</p>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Just now</div>
+                        </div>
+                        <div class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white text-sm">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="bg-gray-100 rounded-lg p-3 max-w-md">
+                                <p class="text-sm text-gray-800">${message}</p>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">Just now</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'chat-message mb-4';
+            typingDiv.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="bg-gray-100 rounded-lg p-3 max-w-md">
+                            <div class="flex space-x-1">
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function generateAIResponse(userMessage) {
+            // Simple mock responses - replace with actual Gemini API integration
+            const responses = {
+                'market': 'Based on the current market analysis, I can see that your product holds a 34.2% market share. The main growth opportunity lies in the 23% of eligible patients who remain untreated.',
+                'payer': 'Payer analysis shows that commercial insurance covers 45.2% of patients. Medicare accounts for 32.8%. Prior authorization is the main access barrier, causing an average delay of 12 days.',
+                'patient': 'Current patient data shows 2,847 total patients in this indication. Treatment persistence is strong at 78%, which is above industry benchmarks.',
+                'treatment': 'Treatment pathway analysis reveals that most patients (2,847) start on first-line therapy. There\'s significant drop-off by third line, with only 892 patients.',
+                'time': 'Average time to treatment is 21 days, which is 8 days better than the benchmark. However, there are regional variations with rural areas showing 3-week delays.',
+                'default': 'I can help you analyze various aspects of your data including market access, patient journeys, treatment patterns, payer coverage, and outcomes. What specific area would you like to explore?'
+            };
+
+            const lowerMessage = userMessage.toLowerCase();
+
+            for (const [key, response] of Object.entries(responses)) {
+                if (lowerMessage.includes(key)) {
+                    return response;
+                }
+            }
+
+            return responses.default;
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

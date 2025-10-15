@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indication Analysis - Healthcare Analytics Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #0d4f4f 0%, #2dd4bf 50%, #7dd3fc 100%);
+        }
+
+        .sidebar-bg {
+            background: linear-gradient(180deg, #e5e7eb 0%, #f9fafb 100%);
+        }
+
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .analysis-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .analysis-icon {
+            background: linear-gradient(135deg, #2dd4bf 0%, #0d4f4f 100%);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .analysis-card:hover .analysis-icon {
+            background: linear-gradient(135deg, #0d4f4f 0%, #2dd4bf 100%);
+            transform: scale(1.1);
+        }
+
+        .breadcrumb {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+        }
+    </style>
+</head>
+<body class="h-screen flex">
+    <!-- Sidebar -->
+    <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col">
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-300">
+            <div class="flex items-center mb-6">
+                <div class="w-8 h-8 bg-gray-800 rounded flex items-center justify-center mr-3">
+                    <span class="text-white text-sm font-bold">ZS</span>
+                </div>
+                <button class="ml-auto text-gray-500 hover:text-gray-700" onclick="goBack()">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+            </div>
+
+            <button class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors">
+                <i class="fas fa-plus mr-3 text-gray-400"></i>
+                New Analysis
+            </button>
+        </div>
+
+        <!-- Search -->
+        <div class="p-6 border-b border-gray-300">
+            <div class="relative">
+                <input type="text" placeholder="Search" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 pl-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Analyses Section -->
+        <div class="flex-1 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Analyses</h3>
+
+            <!-- Analysis Items -->
+            <div class="space-y-4">
+                <div class="text-sm">
+                    <div class="font-medium text-gray-800 mb-1">5 payers?</div>
+                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
+                </div>
+
+                <div class="text-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="font-medium text-gray-800">What are the top reasons for denials within UHC?</div>
+                        <div class="flex items-center">
+                            <span class="text-orange-500 text-xs mr-2">In-Progress</span>
+                            <div class="status-dot bg-orange-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
+                </div>
+
+                <div class="text-sm">
+                    <div class="font-medium text-gray-800 mb-1">Market Structure analysis</div>
+                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
+                </div>
+
+                <div class="text-sm">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="font-medium text-gray-800">What share of patients get treated on Enhertu?</div>
+                        <div class="flex items-center">
+                            <span class="text-green-500 text-xs mr-2">Completed</span>
+                            <div class="status-dot bg-green-500 rounded-full"></div>
+                        </div>
+                    </div>
+                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="p-6 border-t border-gray-300">
+            <div class="flex items-center space-x-4">
+                <button class="text-gray-500 hover:text-gray-700 text-xl">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="text-gray-500 hover:text-gray-700 text-xl">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+                <div class="w-8 h-8 bg-gray-400 rounded-full ml-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 gradient-bg flex flex-col text-white relative">
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb m-6 rounded-lg px-4 py-3">
+            <nav class="flex items-center space-x-2 text-sm">
+                <a href="index.html" class="text-white/80 hover:text-white transition-colors">
+                    <i class="fas fa-home mr-1"></i>
+                    Home
+                </a>
+                <i class="fas fa-chevron-right text-white/60 text-xs"></i>
+                <span class="text-white font-medium" id="indicationBreadcrumb">Loading...</span>
+                <i class="fas fa-chevron-right text-white/60 text-xs"></i>
+                <span class="text-white/80">Analysis Selection</span>
+            </nav>
+        </div>
+
+        <!-- Header -->
+        <div class="px-6 mb-8">
+            <h1 class="text-4xl font-light mb-4">
+                <span id="indicationTitle">Loading...</span> <span class="text-teal-300 font-medium">Analysis</span>
+            </h1>
+            <p class="text-xl text-white/90">
+                Select the type of analysis you'd like to perform for this indication
+            </p>
+        </div>
+
+        <!-- Analysis Type Cards -->
+        <div class="flex-1 px-6 pb-6">
+            <div class="grid grid-cols-2 gap-6 max-w-6xl">
+                <!-- Market Access Analysis -->
+                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('market-access')">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-line text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-gray-600 text-sm font-medium">Available</div>
+                            <div class="text-green-500 text-xs">Ready to run</div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Market Access Analysis</h3>
+                    <p class="text-gray-600 mb-4">Analyze payer coverage, prior authorization requirements, and formulary positioning across different health plans.</p>
+                    <div class="flex items-center text-teal-600 font-medium">
+                        <span>Start Analysis</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Referral Pattern Analysis -->
+                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('referral-pattern')">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-network-wired text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-gray-600 text-sm font-medium">Available</div>
+                            <div class="text-green-500 text-xs">Ready to run</div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Referral Pattern Analysis</h3>
+                    <p class="text-gray-600 mb-4">Understand referral pathways between primary care, specialists, and treatment centers for optimal patient routing.</p>
+                    <div class="flex items-center text-teal-600 font-medium">
+                        <span>Start Analysis</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Care Gap Analysis -->
+                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('care-gap')">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-gray-600 text-sm font-medium">Available</div>
+                            <div class="text-green-500 text-xs">Ready to run</div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Care Gap Analysis</h3>
+                    <p class="text-gray-600 mb-4">Identify gaps in care delivery, missed opportunities for intervention, and areas for care improvement.</p>
+                    <div class="flex items-center text-teal-600 font-medium">
+                        <span>Start Analysis</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Treatment Pathway Analysis -->
+                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('treatment-pathway')">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-route text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-gray-600 text-sm font-medium">Available</div>
+                            <div class="text-green-500 text-xs">Ready to run</div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Treatment Pathway Analysis</h3>
+                    <p class="text-gray-600 mb-4">Map complete treatment journeys from diagnosis to outcomes, including line sequencing and switching patterns.</p>
+                    <div class="flex items-center text-teal-600 font-medium">
+                        <span>Start Analysis</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Market Structure Analysis -->
+                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('market-structure')">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-pie text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-gray-600 text-sm font-medium">Available</div>
+                            <div class="text-green-500 text-xs">Ready to run</div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Market Structure Analysis</h3>
+                    <p class="text-gray-600 mb-4">Analyze competitive landscape, market share dynamics, and positioning across therapeutic segments.</p>
+                    <div class="flex items-center text-teal-600 font-medium">
+                        <span>Start Analysis</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Persistency Analysis -->
+                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('persistency')">
+                    <div class="flex items-start justify-between mb-6">
+                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-clock text-2xl"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-gray-600 text-sm font-medium">Available</div>
+                            <div class="text-green-500 text-xs">Ready to run</div>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Persistency Analysis</h3>
+                    <p class="text-gray-600 mb-4">Evaluate treatment adherence patterns, discontinuation rates, and factors affecting therapy persistence.</p>
+                    <div class="flex items-center text-teal-600 font-medium">
+                        <span>Start Analysis</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load indication data from session storage
+        document.addEventListener('DOMContentLoaded', function() {
+            const indication = sessionStorage.getItem('selectedIndication');
+            const indicationDisplayName = sessionStorage.getItem('indicationDisplayName');
+
+            if (indicationDisplayName) {
+                document.getElementById('indicationBreadcrumb').textContent = indicationDisplayName;
+                document.getElementById('indicationTitle').textContent = indicationDisplayName;
+            } else {
+                // Fallback if no session data
+                document.getElementById('indicationBreadcrumb').textContent = 'Unknown Indication';
+                document.getElementById('indicationTitle').textContent = 'Unknown Indication';
+            }
+        });
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        function navigateToAnalysis(analysisType) {
+            const indication = sessionStorage.getItem('selectedIndication');
+            const indicationDisplayName = sessionStorage.getItem('indicationDisplayName');
+
+            // Store the selected analysis type
+            sessionStorage.setItem('selectedAnalysisType', analysisType);
+
+            // Map analysis types to display names
+            const analysisNames = {
+                'market-access': 'Market Access Analysis',
+                'referral-pattern': 'Referral Pattern Analysis',
+                'care-gap': 'Care Gap Analysis',
+                'treatment-pathway': 'Treatment Pathway Analysis',
+                'market-structure': 'Market Structure Analysis',
+                'persistency': 'Persistency Analysis'
+            };
+
+            sessionStorage.setItem('analysisDisplayName', analysisNames[analysisType]);
+
+            // Navigate to the main dashboard
+            window.location.href = `dashboard.html?indication=${indication}&analysis=${analysisType}`;
+        }
+
+        // Add hover effects and animations
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Indication Analysis page loaded successfully!');
+
+            // Add staggered animation to cards
+            const cards = document.querySelectorAll('.analysis-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>
