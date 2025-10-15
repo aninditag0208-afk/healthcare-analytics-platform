@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .gradient-bg {
-            background: linear-gradient(135deg, #0d4f4f 0%, #2dd4bf 50%, #7dd3fc 100%);
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%);
         }
 
         .sidebar-bg {
@@ -37,30 +37,51 @@
             width: 8px;
             height: 8px;
         }
+
+        .sidebar-collapsible {
+            transition: width 0.3s ease;
+        }
+
+        .sidebar-collapsible.collapsed {
+            width: 60px;
+        }
+
+        .sidebar-collapsible.collapsed .sidebar-content {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .sidebar-content {
+            transition: opacity 0.3s ease 0.1s;
+        }
     </style>
 </head>
 <body class="h-screen flex">
     <!-- Sidebar -->
-    <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col">
+    <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col sidebar-collapsible" id="mainSidebar">
         <!-- Header -->
         <div class="p-6 border-b border-gray-300">
             <div class="flex items-center mb-6">
                 <div class="w-8 h-8 bg-gray-800 rounded flex items-center justify-center mr-3">
                     <span class="text-white text-sm font-bold">ZS</span>
                 </div>
-                <button class="ml-auto text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-arrow-left text-lg"></i>
-                </button>
+                <div class="sidebar-content flex items-center ml-auto">
+                    <button class="text-gray-500 hover:text-gray-700" onclick="toggleSidebar()">
+                        <i class="fas fa-chevron-left text-lg"></i>
+                    </button>
+                </div>
             </div>
 
-            <button class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors">
-                <i class="fas fa-plus mr-3 text-gray-400"></i>
-                New Analysis
-            </button>
+            <div class="sidebar-content">
+                <button class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-plus mr-3 text-gray-400"></i>
+                    New Analysis
+                </button>
+            </div>
         </div>
 
         <!-- Search -->
-        <div class="p-6 border-b border-gray-300">
+        <div class="p-6 border-b border-gray-300 sidebar-content">
             <div class="relative">
                 <input type="text" placeholder="Search" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 pl-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
@@ -68,7 +89,7 @@
         </div>
 
         <!-- Analyses Section -->
-        <div class="flex-1 p-6">
+        <div class="flex-1 p-6 sidebar-content">
             <h3 class="text-lg font-semibold text-gray-800 mb-6">Analyses</h3>
 
             <!-- Analysis Items -->
@@ -135,10 +156,12 @@
                 <button class="text-gray-500 hover:text-gray-700 text-xl">
                     <i class="fas fa-cog"></i>
                 </button>
-                <button class="text-gray-500 hover:text-gray-700 text-xl">
-                    <i class="fas fa-question-circle"></i>
-                </button>
-                <div class="w-8 h-8 bg-gray-400 rounded-full ml-auto"></div>
+                <div class="sidebar-content flex items-center space-x-4">
+                    <button class="text-gray-500 hover:text-gray-700 text-xl">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                    <div class="w-8 h-8 bg-gray-400 rounded-full"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -169,10 +192,10 @@
                 </div>
             </div>
 
-            <!-- Ovarian Cancer HER2+ -->
+            <!-- Ovarian Cancer -->
             <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="navigateToIndication('ovarian-cancer')">
                 <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg font-semibold">Ovarian Cancer HER2+</h3>
+                    <h3 class="text-lg font-semibold">Ovarian Cancer</h3>
                 </div>
                 <p class="text-sm text-white/80">View</p>
                 <div class="absolute bottom-4 right-4 text-white/60 group-hover:text-white transition-colors">
@@ -191,10 +214,10 @@
                 </div>
             </div>
 
-            <!-- Breast Cancer -->
+            <!-- HER2+ Breast Cancer -->
             <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="navigateToIndication('breast-cancer')">
                 <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg font-semibold">Breast Cancer</h3>
+                    <h3 class="text-lg font-semibold">HER2+ Breast Cancer</h3>
                 </div>
                 <p class="text-sm text-white/80">View</p>
                 <div class="absolute bottom-4 right-4 text-white/60 group-hover:text-white transition-colors">
@@ -231,11 +254,29 @@
     </div>
 
     <script>
+        let sidebarCollapsed = false;
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            sidebarCollapsed = !sidebarCollapsed;
+
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+
+            // Save state
+            if (window.analyticsState) {
+                window.analyticsState.setSidebarCollapsed(sidebarCollapsed);
+            }
+        }
+
         function navigateToIndication(indication) {
             const indicationNames = {
-                'ovarian-cancer': 'Ovarian Cancer HER2+',
+                'ovarian-cancer': 'Ovarian Cancer',
                 'igan': 'IgAN',
-                'breast-cancer': 'Breast Cancer'
+                'breast-cancer': 'HER2+ Breast Cancer'
             };
 
             // Store the selected indication in sessionStorage
@@ -272,6 +313,14 @@
         // Add some interactive effects
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Healthcare Analytics Platform loaded successfully!');
+
+            // Initialize sidebar state
+            if (window.analyticsState) {
+                sidebarCollapsed = window.analyticsState.isSidebarCollapsed();
+                if (sidebarCollapsed) {
+                    document.getElementById('mainSidebar').classList.add('collapsed');
+                }
+            }
 
             // Add typing animation to placeholder
             const input = document.getElementById('analysisInput');

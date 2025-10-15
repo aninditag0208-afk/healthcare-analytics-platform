@@ -139,9 +139,36 @@
         .breadcrumb {
             background: rgba(0, 0, 0, 0.05);
         }
+
+        .insights-vertical {
+            transition: height 0.3s ease;
+            overflow: hidden;
+        }
+
+        .insights-vertical.collapsed {
+            height: 0 !important;
+        }
+
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background-color: #2dd4bf;
+            color: white;
+            border-color: #2dd4bf;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
-<body class="h-screen flex bg-gray-50">
+<body class="h-screen flex" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%);">
     <!-- Sidebar -->
     <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col sidebar-collapsible" id="mainSidebar">
         <!-- Header -->
@@ -219,17 +246,31 @@
         </div>
 
         <!-- Dashboard Content -->
-        <div class="flex-1 flex">
+        <div class="flex-1 flex flex-col">
             <!-- Main Dashboard Area -->
-            <div class="flex-1 p-6 space-y-6">
+            <div class="flex-1 p-6">
                 <!-- Header with Key Metrics -->
                 <div class="mb-6">
                     <h1 class="text-3xl font-bold text-gray-800 mb-2" id="dashboardTitle">Loading...</h1>
                     <p class="text-gray-600" id="dashboardSubtitle">Analyzing patient journey data...</p>
                 </div>
 
-                <!-- Key Metrics Row -->
-                <div class="grid grid-cols-4 gap-4 mb-6">
+                <!-- Tab Navigation -->
+                <div class="mb-6">
+                    <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+                        <button class="tab-button px-4 py-2 rounded-md text-sm font-medium active" onclick="switchTab('analysis')" id="analysisTab">
+                            Analysis Report
+                        </button>
+                        <button class="tab-button px-4 py-2 rounded-md text-sm font-medium" onclick="switchTab('research')" id="researchTab">
+                            Deep Research
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div id="analysisContent" class="tab-content active space-y-6">
+                    <!-- Key Metrics Row -->
+                    <div class="grid grid-cols-4 gap-4">
                     <div class="metric-card">
                         <div class="flex items-center justify-between mb-2">
                             <i class="fas fa-users text-xl"></i>
@@ -303,73 +344,113 @@
                 </div>
             </div>
 
-            <!-- Right Panel: Key Insights (Collapsible) -->
-            <div class="w-80 border-l border-gray-200 insights-panel" id="insightsPanel">
-                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                <!-- Deep Research Tab Content -->
+                <div id="researchContent" class="tab-content space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Market Access News -->
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Market Access Developments</h3>
+                            <div class="space-y-4" id="marketAccessNews">
+                                <!-- News items will be populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Patient Journey Insights -->
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Patient Journey Deep Insights</h3>
+                            <div class="space-y-4" id="patientJourneyInsights">
+                                <!-- Insights will be populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Payer Intelligence -->
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Payer Intelligence</h3>
+                            <div class="space-y-4" id="payerIntelligence">
+                                <!-- Payer data will be populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Value-Based Contracts -->
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Value-Based Contract Trends</h3>
+                            <div class="space-y-4" id="valueBasedContracts">
+                                <!-- Contract data will be populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Insights Section (Vertically Collapsible) -->
+            <div class="border-t border-gray-200 bg-white">
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-800 insights-title">Key Insights</h3>
-                        <button onclick="toggleInsights()" class="collapse-btn text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-chevron-left text-sm"></i>
+                        <h3 class="text-lg font-semibold text-gray-800">Key Insights</h3>
+                        <button onclick="toggleVerticalInsights()" class="text-gray-500 hover:text-gray-700" id="verticalToggleBtn">
+                            <i class="fas fa-chevron-up text-sm"></i>
                         </button>
                     </div>
                 </div>
-                <div class="collapsible-content p-4 space-y-4" id="insightsContent">
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-lightbulb text-blue-500 mt-1"></i>
-                            <div>
-                                <h4 class="font-medium text-blue-800 mb-1">Market Opportunity</h4>
-                                <p class="text-sm text-blue-700">23% of eligible patients remain untreated, representing a significant growth opportunity.</p>
+                <div class="insights-vertical p-6" id="verticalInsightsContent" style="height: 200px;">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-lightbulb text-blue-500 mt-1"></i>
+                                <div>
+                                    <h4 class="font-medium text-blue-800 mb-1">Market Opportunity</h4>
+                                    <p class="text-sm text-blue-700">23% of eligible patients remain untreated, representing a significant growth opportunity.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
-                            <div>
-                                <h4 class="font-medium text-yellow-800 mb-1">Access Barrier</h4>
-                                <p class="text-sm text-yellow-700">Prior authorization delays average 12 days across major payers.</p>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
+                                <div>
+                                    <h4 class="font-medium text-yellow-800 mb-1">Access Barrier</h4>
+                                    <p class="text-sm text-yellow-700">Prior authorization delays average 12 days across major payers.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-check-circle text-green-500 mt-1"></i>
-                            <div>
-                                <h4 class="font-medium text-green-800 mb-1">Strong Performance</h4>
-                                <p class="text-sm text-green-700">Treatment persistence rates exceed industry benchmarks by 15%.</p>
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                <div>
+                                    <h4 class="font-medium text-green-800 mb-1">Strong Performance</h4>
+                                    <p class="text-sm text-green-700">Treatment persistence rates exceed industry benchmarks by 15%.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-chart-line text-purple-500 mt-1"></i>
-                            <div>
-                                <h4 class="font-medium text-purple-800 mb-1">Growth Trend</h4>
-                                <p class="text-sm text-purple-700">Monthly patient starts increased 18% quarter-over-quarter.</p>
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-chart-line text-purple-500 mt-1"></i>
+                                <div>
+                                    <h4 class="font-medium text-purple-800 mb-1">Growth Trend</h4>
+                                    <p class="text-sm text-purple-700">Monthly patient starts increased 18% quarter-over-quarter.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-clock text-red-500 mt-1"></i>
-                            <div>
-                                <h4 class="font-medium text-red-800 mb-1">Time to Treatment</h4>
-                                <p class="text-sm text-red-700">Regional variations show 3-week delays in rural areas.</p>
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-clock text-red-500 mt-1"></i>
+                                <div>
+                                    <h4 class="font-medium text-red-800 mb-1">Time to Treatment</h4>
+                                    <p class="text-sm text-red-700">Regional variations show 3-week delays in rural areas.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-users text-gray-500 mt-1"></i>
-                            <div>
-                                <h4 class="font-medium text-gray-800 mb-1">Patient Demographics</h4>
-                                <p class="text-sm text-gray-700">65% female, median age 58, predominantly commercial payers.</p>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-users text-gray-500 mt-1"></i>
+                                <div>
+                                    <h4 class="font-medium text-gray-800 mb-1">Patient Demographics</h4>
+                                    <p class="text-sm text-gray-700">65% female, median age 58, predominantly commercial payers.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -794,16 +875,153 @@
             }
         }
 
-        function toggleInsights() {
-            const insightsPanel = document.getElementById('insightsPanel');
+        function toggleVerticalInsights() {
+            const insightsContent = document.getElementById('verticalInsightsContent');
+            const toggleBtn = document.getElementById('verticalToggleBtn').querySelector('i');
 
             insightsCollapsed = !insightsCollapsed;
 
             if (insightsCollapsed) {
-                insightsPanel.classList.add('collapsed');
+                insightsContent.classList.add('collapsed');
+                toggleBtn.className = 'fas fa-chevron-down text-sm';
             } else {
-                insightsPanel.classList.remove('collapsed');
+                insightsContent.classList.remove('collapsed');
+                insightsContent.style.height = '200px';
+                toggleBtn.className = 'fas fa-chevron-up text-sm';
             }
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            const analysisTab = document.getElementById('analysisTab');
+            const researchTab = document.getElementById('researchTab');
+
+            if (tabName === 'analysis') {
+                analysisTab.classList.add('active');
+                researchTab.classList.remove('active');
+                document.getElementById('analysisContent').classList.add('active');
+                document.getElementById('researchContent').classList.remove('active');
+            } else {
+                researchTab.classList.add('active');
+                analysisTab.classList.remove('active');
+                document.getElementById('researchContent').classList.add('active');
+                document.getElementById('analysisContent').classList.remove('active');
+
+                // Populate deep research content if not already done
+                populateDeepResearchContent();
+            }
+        }
+
+        function populateDeepResearchContent() {
+            const indication = sessionStorage.getItem('indicationDisplayName');
+            const analysisType = sessionStorage.getItem('selectedAnalysisType');
+
+            // Market Access News
+            populateMarketAccessNews(indication, analysisType);
+
+            // Patient Journey Insights
+            populatePatientJourneyInsights(indication, analysisType);
+
+            // Payer Intelligence
+            populatePayerIntelligence(indication);
+
+            // Value-Based Contracts
+            populateValueBasedContracts(indication);
+        }
+
+        function populateMarketAccessNews(indication, analysisType) {
+            const newsContainer = document.getElementById('marketAccessNews');
+
+            const newsItems = getMarketAccessNews(indication, analysisType);
+
+            newsContainer.innerHTML = newsItems.map(item => `
+                <div class="border-l-4 border-${item.color}-500 bg-${item.color}-50 p-4 rounded-r-lg">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-${item.icon} text-${item.color}-500 mt-1"></i>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-${item.color}-800 mb-1">${item.title}</h4>
+                            <p class="text-sm text-${item.color}-700 mb-2">${item.description}</p>
+                            <div class="text-xs text-${item.color}-600">${item.date} • ${item.source}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populatePatientJourneyInsights(indication, analysisType) {
+            const insightsContainer = document.getElementById('patientJourneyInsights');
+
+            const insights = getPatientJourneyInsights(indication, analysisType);
+
+            insightsContainer.innerHTML = insights.map(insight => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-${insight.icon} text-blue-600 text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-800 mb-1">${insight.title}</h4>
+                            <p class="text-sm text-gray-600 mb-2">${insight.description}</p>
+                            <div class="text-xs text-gray-500">${insight.metric}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populatePayerIntelligence(indication) {
+            const payerContainer = document.getElementById('payerIntelligence');
+
+            const payerData = getPayerIntelligence(indication);
+
+            payerContainer.innerHTML = payerData.map(payer => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-medium text-gray-800">${payer.name}</h4>
+                        <span class="px-2 py-1 bg-${payer.status === 'Favorable' ? 'green' : payer.status === 'Restricted' ? 'red' : 'yellow'}-100 text-${payer.status === 'Favorable' ? 'green' : payer.status === 'Restricted' ? 'red' : 'yellow'}-800 text-xs rounded-full">
+                            ${payer.status}
+                        </span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Coverage:</span>
+                            <span class="font-medium">${payer.coverage}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Prior Auth:</span>
+                            <span class="font-medium">${payer.priorAuth}</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-2">${payer.notes}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateValueBasedContracts(indication) {
+            const contractsContainer = document.getElementById('valueBasedContracts');
+
+            const contracts = getValueBasedContracts(indication);
+
+            contractsContainer.innerHTML = contracts.map(contract => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-handshake text-purple-600 text-sm"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-gray-800 mb-1">${contract.title}</h4>
+                            <p class="text-sm text-gray-600 mb-2">${contract.description}</p>
+                            <div class="flex items-center space-x-4 text-xs text-gray-500">
+                                <span>${contract.type}</span>
+                                <span>•</span>
+                                <span>${contract.status}</span>
+                                <span>•</span>
+                                <span>${contract.date}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function setupChatInput() {
@@ -955,6 +1173,293 @@
 
         function goBack() {
             window.history.back();
+        }
+
+        // Deep Research Data Generation Functions
+        function getMarketAccessNews(indication, analysisType) {
+            const marketAccessNews = {
+                'market-access': {
+                    'Ovarian Cancer': [
+                        {
+                            title: 'UnitedHealth Expands Coverage for Ovarian Cancer Treatments',
+                            description: 'UnitedHealthcare announces broader coverage criteria for innovative ovarian cancer therapies, reducing prior authorization requirements.',
+                            color: 'green',
+                            icon: 'plus-circle',
+                            date: 'Oct 12, 2025',
+                            source: 'Healthcare Finance News'
+                        },
+                        {
+                            title: 'Anthem Implements Value-Based Contract',
+                            description: 'Anthem Blue Cross negotiates outcomes-based contract for ovarian cancer treatments with 15% cost sharing reduction.',
+                            color: 'blue',
+                            icon: 'handshake',
+                            date: 'Oct 8, 2025',
+                            source: 'Modern Healthcare'
+                        },
+                        {
+                            title: 'Medicare Coverage Decision Pending',
+                            description: 'CMS reviewing National Coverage Determination for combination ovarian cancer therapy protocols.',
+                            color: 'yellow',
+                            icon: 'clock',
+                            date: 'Oct 5, 2025',
+                            source: 'Federal Register'
+                        }
+                    ],
+                    'HER2+ Breast Cancer': [
+                        {
+                            title: 'Aetna Streamlines HER2+ Breast Cancer Access',
+                            description: 'Aetna removes step therapy requirements for first-line HER2+ breast cancer treatments following clinical evidence review.',
+                            color: 'green',
+                            icon: 'plus-circle',
+                            date: 'Oct 10, 2025',
+                            source: 'Managed Care Magazine'
+                        },
+                        {
+                            title: 'Cigna Negotiates Biosimilar Preferential Pricing',
+                            description: 'Cigna secures preferential pricing for HER2+ targeted therapy biosimilars, reducing patient copayments by 40%.',
+                            color: 'blue',
+                            icon: 'dollar-sign',
+                            date: 'Oct 7, 2025',
+                            source: 'BioPharma Dive'
+                        }
+                    ],
+                    'IgAN': [
+                        {
+                            title: 'Specialty Pharmacy Partnership Announced',
+                            description: 'Express Scripts partners with nephrology centers to improve IgAN treatment access and monitoring.',
+                            color: 'green',
+                            icon: 'plus-circle',
+                            date: 'Oct 9, 2025',
+                            source: 'Nephrology News'
+                        }
+                    ]
+                }
+            };
+
+            return marketAccessNews[analysisType]?.[indication] || [
+                {
+                    title: 'Market Access Update Available',
+                    description: 'Recent developments in payer coverage and access policies for this indication.',
+                    color: 'gray',
+                    icon: 'info-circle',
+                    date: 'Recent',
+                    source: 'Healthcare Analytics'
+                }
+            ];
+        }
+
+        function getPatientJourneyInsights(indication, analysisType) {
+            const journeyInsights = {
+                'Ovarian Cancer': [
+                    {
+                        title: 'Diagnosis Delay Patterns',
+                        description: 'Average time from symptom onset to diagnosis is 4.2 months, with significant variation by geographic region and provider type.',
+                        icon: 'clock',
+                        metric: '78% diagnosed at stage III/IV'
+                    },
+                    {
+                        title: 'Treatment Sequencing',
+                        description: 'Patients typically receive 2.3 lines of therapy on average, with 65% receiving maintenance therapy after first-line treatment.',
+                        icon: 'route',
+                        metric: '65% receive maintenance therapy'
+                    },
+                    {
+                        title: 'Specialist Referral Patterns',
+                        description: 'Gynecologic oncologists manage 82% of cases, with higher survival rates compared to general oncology care.',
+                        icon: 'user-md',
+                        metric: '18% improvement in 5-year survival'
+                    },
+                    {
+                        title: 'Geographic Disparities',
+                        description: 'Rural patients travel average 147 miles for specialized care, leading to treatment delays and reduced follow-up compliance.',
+                        icon: 'map-marker-alt',
+                        metric: '147 miles average travel distance'
+                    }
+                ],
+                'HER2+ Breast Cancer': [
+                    {
+                        title: 'Biomarker Testing Rates',
+                        description: 'HER2 testing completion rate is 94%, but time to results averages 8.5 days, potentially delaying treatment initiation.',
+                        icon: 'vial',
+                        metric: '94% testing completion rate'
+                    },
+                    {
+                        title: 'Neoadjuvant Therapy Adoption',
+                        description: 'Neoadjuvant therapy usage increased to 67% for stage II-III HER2+ breast cancer, improving surgical outcomes.',
+                        icon: 'pills',
+                        metric: '67% receive neoadjuvant therapy'
+                    },
+                    {
+                        title: 'Cardiotoxicity Monitoring',
+                        description: 'Regular cardiac monitoring during HER2-targeted therapy shows 89% adherence, preventing treatment discontinuation.',
+                        icon: 'heartbeat',
+                        metric: '89% monitoring adherence'
+                    }
+                ],
+                'IgAN': [
+                    {
+                        title: 'Diagnostic Journey',
+                        description: 'Average time from proteinuria detection to kidney biopsy is 6.8 months, with significant delays in primary care settings.',
+                        icon: 'search',
+                        metric: '6.8 months to biopsy'
+                    },
+                    {
+                        title: 'Treatment Response Monitoring',
+                        description: 'Patients require monthly monitoring for first 6 months, with 78% achieving target proteinuria reduction.',
+                        icon: 'chart-line',
+                        metric: '78% achieve target reduction'
+                    }
+                ]
+            };
+
+            return journeyInsights[indication] || [
+                {
+                    title: 'Patient Journey Analysis',
+                    description: 'Comprehensive analysis of patient care pathways and treatment patterns.',
+                    icon: 'user-circle',
+                    metric: 'Data-driven insights available'
+                }
+            ];
+        }
+
+        function getPayerIntelligence(indication) {
+            const payerData = {
+                'Ovarian Cancer': [
+                    {
+                        name: 'UnitedHealthcare',
+                        status: 'Favorable',
+                        coverage: '85%',
+                        priorAuth: 'Required',
+                        notes: 'Streamlined approval process for maintenance therapy'
+                    },
+                    {
+                        name: 'Anthem BCBS',
+                        status: 'Moderate',
+                        coverage: '78%',
+                        priorAuth: 'Required',
+                        notes: 'Step therapy requirements for combination regimens'
+                    },
+                    {
+                        name: 'Aetna',
+                        status: 'Restricted',
+                        coverage: '65%',
+                        priorAuth: 'Required',
+                        notes: 'Limited to specialized oncology centers'
+                    },
+                    {
+                        name: 'Cigna',
+                        status: 'Favorable',
+                        coverage: '82%',
+                        priorAuth: 'Not Required',
+                        notes: 'Open access for first-line treatments'
+                    }
+                ],
+                'HER2+ Breast Cancer': [
+                    {
+                        name: 'UnitedHealthcare',
+                        status: 'Favorable',
+                        coverage: '92%',
+                        priorAuth: 'Not Required',
+                        notes: 'Broad coverage for HER2+ targeted therapies'
+                    },
+                    {
+                        name: 'Anthem BCBS',
+                        status: 'Favorable',
+                        coverage: '89%',
+                        priorAuth: 'Required',
+                        notes: 'Quick approval process (48-72 hours)'
+                    },
+                    {
+                        name: 'Aetna',
+                        status: 'Moderate',
+                        coverage: '85%',
+                        priorAuth: 'Required',
+                        notes: 'Biosimilar preferencing in place'
+                    }
+                ],
+                'IgAN': [
+                    {
+                        name: 'Medicare',
+                        status: 'Favorable',
+                        coverage: '88%',
+                        priorAuth: 'Required',
+                        notes: 'Coverage under Part B with specialist requirement'
+                    },
+                    {
+                        name: 'UnitedHealthcare',
+                        status: 'Moderate',
+                        coverage: '75%',
+                        priorAuth: 'Required',
+                        notes: 'Nephrology specialist referral required'
+                    }
+                ]
+            };
+
+            return payerData[indication] || [
+                {
+                    name: 'Major Payers',
+                    status: 'Variable',
+                    coverage: 'Contact for details',
+                    priorAuth: 'Varies',
+                    notes: 'Payer coverage varies by indication'
+                }
+            ];
+        }
+
+        function getValueBasedContracts(indication) {
+            const contracts = {
+                'Ovarian Cancer': [
+                    {
+                        title: 'Anthem Outcomes-Based Agreement',
+                        description: 'Performance-based contract linking payment to progression-free survival outcomes',
+                        type: 'Outcomes-Based',
+                        status: 'Active',
+                        date: 'Sep 2025'
+                    },
+                    {
+                        title: 'Medicare Oncology Care Model',
+                        description: 'Bundled payment pilot for comprehensive ovarian cancer care management',
+                        type: 'Bundled Payment',
+                        status: 'Pilot Phase',
+                        date: 'Aug 2025'
+                    }
+                ],
+                'HER2+ Breast Cancer': [
+                    {
+                        title: 'Cigna Risk-Sharing Partnership',
+                        description: 'Shared savings model for HER2+ breast cancer treatment protocols',
+                        type: 'Risk-Sharing',
+                        status: 'Active',
+                        date: 'Oct 2025'
+                    },
+                    {
+                        title: 'Aetna Quality Metrics Program',
+                        description: 'Quality-based payments tied to cardiac safety monitoring compliance',
+                        type: 'Quality-Based',
+                        status: 'Under Negotiation',
+                        date: 'Nov 2025'
+                    }
+                ],
+                'IgAN': [
+                    {
+                        title: 'Express Scripts Specialty Outcomes',
+                        description: 'Pharmacy benefit management with outcomes tracking for kidney function',
+                        type: 'Pharmacy Benefit',
+                        status: 'Active',
+                        date: 'Sep 2025'
+                    }
+                ]
+            };
+
+            return contracts[indication] || [
+                {
+                    title: 'Value-Based Opportunities',
+                    description: 'Emerging value-based contracting opportunities in this therapeutic area',
+                    type: 'Emerging',
+                    status: 'In Development',
+                    date: 'TBD'
+                }
+            ];
         }
     </script>
 </body>
