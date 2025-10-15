@@ -168,80 +168,42 @@
         }
     </style>
 </head>
-<body class="h-screen flex" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%);">
-    <!-- Sidebar -->
-    <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col sidebar-collapsible" id="mainSidebar">
-        <!-- Header -->
-        <div class="p-6 border-b border-gray-300">
-            <div class="flex items-center mb-6">
-                <div class="w-8 h-8 bg-gray-800 rounded flex items-center justify-center mr-3">
-                    <span class="text-white text-sm font-bold">ZS</span>
-                </div>
-                <div class="sidebar-content flex items-center ml-auto space-x-2">
-                    <button class="text-gray-500 hover:text-gray-700" onclick="goBack()">
-                        <i class="fas fa-arrow-left text-lg"></i>
-                    </button>
-                    <button class="text-gray-500 hover:text-gray-700" onclick="toggleSidebar()">
-                        <i class="fas fa-chevron-left text-lg"></i>
-                    </button>
-                </div>
+<body class="h-screen" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%);">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-6 border-b border-white/10">
+        <div class="flex items-center">
+            <button class="text-white/80 hover:text-white mr-4" onclick="goBack()">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </button>
+            <div class="w-8 h-8 bg-white rounded flex items-center justify-center mr-3">
+                <span class="text-gray-800 text-sm font-bold">ZS</span>
             </div>
-
-            <div class="sidebar-content">
-                <button class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors">
-                    <i class="fas fa-plus mr-3 text-gray-400"></i>
-                    New Analysis
-                </button>
-            </div>
+            <span class="text-white text-lg font-medium">Healthcare Analytics Platform</span>
         </div>
-
-        <!-- Search -->
-        <div class="p-6 border-b border-gray-300 sidebar-content">
-            <div class="relative">
-                <input type="text" placeholder="Search" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 pl-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-            </div>
-        </div>
-
-        <!-- Analyses Section -->
-        <div class="flex-1 p-6 sidebar-content">
-            <h3 class="text-lg font-semibold text-gray-800 mb-6">Analyses</h3>
-
-            <!-- Dynamic Analysis List -->
-            <div class="space-y-4" id="analysisList">
-                <!-- Analysis items will be populated dynamically -->
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="p-6 border-t border-gray-300">
-            <div class="flex items-center space-x-4">
-                <button class="text-gray-500 hover:text-gray-700 text-xl">
-                    <i class="fas fa-cog"></i>
-                </button>
-                <div class="sidebar-content flex items-center space-x-4">
-                    <button class="text-gray-500 hover:text-gray-700 text-xl">
-                        <i class="fas fa-question-circle"></i>
-                    </button>
-                    <div class="w-8 h-8 bg-gray-400 rounded-full"></div>
-                </div>
-            </div>
+        <div class="flex items-center space-x-4">
+            <button class="text-white/80 hover:text-white text-xl">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="text-white/80 hover:text-white text-xl">
+                <i class="fas fa-question-circle"></i>
+            </button>
+            <div class="w-8 h-8 bg-white/20 rounded-full"></div>
         </div>
     </div>
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col">
         <!-- Breadcrumb -->
-        <div class="breadcrumb px-6 py-4 border-b border-gray-200">
-            <nav class="flex items-center space-x-2 text-sm text-gray-600">
-                <a href="index.html" class="hover:text-gray-800 transition-colors">
+        <div class="breadcrumb px-6 py-4 border-b border-white/10">
+            <nav class="flex items-center space-x-2 text-sm text-white/80">
+                <a href="index.html" class="hover:text-white transition-colors">
                     <i class="fas fa-home mr-1"></i>
                     Home
                 </a>
-                <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
-                <a href="#" onclick="goBack()" class="hover:text-gray-800 transition-colors" id="indicationBreadcrumb">Loading...</a>
-                <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
-                <span class="text-gray-800 font-medium" id="analysisBreadcrumb">Loading...</span>
+                <i class="fas fa-chevron-right text-white/60 text-xs"></i>
+                <a href="#" onclick="goBack()" class="hover:text-white transition-colors" id="indicationBreadcrumb">Loading...</a>
+                <i class="fas fa-chevron-right text-white/60 text-xs"></i>
+                <span class="text-white font-medium" id="analysisBreadcrumb">Loading...</span>
             </nav>
         </div>
 
@@ -251,8 +213,8 @@
             <div class="flex-1 p-6">
                 <!-- Header with Key Metrics -->
                 <div class="mb-6">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-2" id="dashboardTitle">Loading...</h1>
-                    <p class="text-gray-600" id="dashboardSubtitle">Analyzing patient journey data...</p>
+                    <h1 class="text-3xl font-bold text-white mb-2" id="dashboardTitle">Loading...</h1>
+                    <p class="text-white/80" id="dashboardSubtitle">Analyzing patient journey data...</p>
                 </div>
 
                 <!-- Tab Navigation -->
@@ -385,11 +347,11 @@
             </div>
 
             <!-- Key Insights Section (Vertically Collapsible) -->
-            <div class="border-t border-gray-200 bg-white">
-                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div class="border-t border-white/10 bg-black/30">
+                <div class="px-6 py-4 bg-black/40 border-b border-white/10">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-800">Key Insights</h3>
-                        <button onclick="toggleVerticalInsights()" class="text-gray-500 hover:text-gray-700" id="verticalToggleBtn">
+                        <h3 class="text-lg font-semibold text-white">Key Insights</h3>
+                        <button onclick="toggleVerticalInsights()" class="text-white/80 hover:text-white" id="verticalToggleBtn">
                             <i class="fas fa-chevron-up text-sm"></i>
                         </button>
                     </div>
@@ -461,15 +423,15 @@
         </div>
 
         <!-- Chat Panel (Collapsible) -->
-        <div class="chat-panel border-t border-gray-200" id="chatPanel">
-            <div class="p-4 bg-gray-50 border-b border-gray-200">
+        <div class="chat-panel border-t border-white/10" id="chatPanel">
+            <div class="p-4 bg-black/40 border-b border-white/10">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <i class="fas fa-robot text-teal-500"></i>
-                        <h3 class="text-lg font-semibold text-gray-800">AI Assistant</h3>
-                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Online</span>
+                        <h3 class="text-lg font-semibold text-white">AI Assistant</h3>
+                        <span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full border border-green-500/30">Online</span>
                     </div>
-                    <button onclick="toggleChat()" class="collapse-btn text-gray-500 hover:text-gray-700" id="chatToggleBtn">
+                    <button onclick="toggleChat()" class="collapse-btn text-white/80 hover:text-white" id="chatToggleBtn">
                         <i class="fas fa-chevron-up text-sm"></i>
                     </button>
                 </div>
@@ -492,12 +454,12 @@
                     </div>
                 </div>
 
-                <div class="p-4 border-t border-gray-200">
+                <div class="p-4 border-t border-white/10">
                     <div class="flex space-x-2">
                         <input
                             type="text"
                             placeholder="Ask me anything about your analysis..."
-                            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            class="flex-1 border border-white/20 bg-white/10 text-white placeholder-white/60 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                             id="chatInput"
                         >
                         <button
@@ -549,58 +511,11 @@
                     }
                 });
 
-                // Load sidebar collapsed state
-                sidebarCollapsed = window.analyticsState.isSidebarCollapsed();
-                if (sidebarCollapsed) {
-                    document.getElementById('mainSidebar').classList.add('collapsed');
-                }
+                // Removed sidebar state loading
             }
         }
 
-        function populateAnalysisList() {
-            const analysisList = document.getElementById('analysisList');
-            if (!analysisList || !window.analyticsState) return;
-
-            const analyses = window.analyticsState.getAnalyses();
-            const currentAnalysis = window.analyticsState.getCurrentAnalysis();
-
-            analysisList.innerHTML = '';
-
-            analyses.forEach(analysis => {
-                const statusInfo = window.analyticsState.getStatusInfo(analysis.status);
-                const timeText = window.analyticsState.formatTimestamp(analysis.timestamp);
-                const isCurrentAnalysis = currentAnalysis && currentAnalysis.id === analysis.id;
-
-                const analysisElement = document.createElement('div');
-                analysisElement.className = `text-sm ${isCurrentAnalysis ? 'bg-teal-50 border border-teal-200 rounded-lg p-3' : ''}`;
-
-                analysisElement.innerHTML = `
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="font-medium ${isCurrentAnalysis ? 'text-teal-800' : 'text-gray-800'} truncate pr-2">
-                            ${analysis.title}
-                        </div>
-                        ${analysis.status !== 'pending' ? `
-                            <div class="flex items-center flex-shrink-0">
-                                <span class="${statusInfo.color} text-xs mr-2">${statusInfo.text}</span>
-                                <div class="status-dot ${statusInfo.bgColor} rounded-full"></div>
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div class="${isCurrentAnalysis ? 'text-teal-600' : 'text-gray-500'} text-xs">
-                        ${timeText}
-                    </div>
-                    ${analysis.status === 'running' && analysis.progress !== undefined ? `
-                        <div class="mt-2">
-                            <div class="bg-gray-200 rounded-full h-1">
-                                <div class="bg-blue-500 h-1 rounded-full transition-all duration-300" style="width: ${analysis.progress}%"></div>
-                            </div>
-                        </div>
-                    ` : ''}
-                `;
-
-                analysisList.appendChild(analysisElement);
-            });
-        }
+        // Removed analysis list functionality since sidebar is removed
 
         function loadSessionData() {
             const indication = sessionStorage.getItem('selectedIndication');
@@ -909,21 +824,7 @@
             populateDrugEpisodesTable();
         }
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('mainSidebar');
-            sidebarCollapsed = !sidebarCollapsed;
-
-            if (sidebarCollapsed) {
-                sidebar.classList.add('collapsed');
-            } else {
-                sidebar.classList.remove('collapsed');
-            }
-
-            // Save state
-            if (window.analyticsState) {
-                window.analyticsState.setSidebarCollapsed(sidebarCollapsed);
-            }
-        }
+        // Removed sidebar toggle functionality
 
         function toggleChat() {
             const chatPanel = document.getElementById('chatPanel');

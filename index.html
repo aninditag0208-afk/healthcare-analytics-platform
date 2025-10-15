@@ -56,118 +56,28 @@
         }
     </style>
 </head>
-<body class="h-screen flex">
-    <!-- Sidebar -->
-    <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col sidebar-collapsible" id="mainSidebar">
-        <!-- Header -->
-        <div class="p-6 border-b border-gray-300">
-            <div class="flex items-center mb-6">
-                <div class="w-8 h-8 bg-gray-800 rounded flex items-center justify-center mr-3">
-                    <span class="text-white text-sm font-bold">ZS</span>
-                </div>
-                <div class="sidebar-content flex items-center ml-auto">
-                    <button class="text-gray-500 hover:text-gray-700" onclick="toggleSidebar()">
-                        <i class="fas fa-chevron-left text-lg"></i>
-                    </button>
-                </div>
+<body class="h-screen gradient-bg">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-6">
+        <div class="flex items-center">
+            <div class="w-8 h-8 bg-white rounded flex items-center justify-center mr-3">
+                <span class="text-gray-800 text-sm font-bold">ZS</span>
             </div>
-
-            <div class="sidebar-content">
-                <button class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors">
-                    <i class="fas fa-plus mr-3 text-gray-400"></i>
-                    New Analysis
-                </button>
-            </div>
+            <span class="text-white text-lg font-medium">Healthcare Analytics Platform</span>
         </div>
-
-        <!-- Search -->
-        <div class="p-6 border-b border-gray-300 sidebar-content">
-            <div class="relative">
-                <input type="text" placeholder="Search" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 pl-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-            </div>
-        </div>
-
-        <!-- Analyses Section -->
-        <div class="flex-1 p-6 sidebar-content">
-            <h3 class="text-lg font-semibold text-gray-800 mb-6">Analyses</h3>
-
-            <!-- Analysis Items -->
-            <div class="space-y-4">
-                <div class="text-sm">
-                    <div class="font-medium text-gray-800 mb-1">5 payers?</div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
-
-                <div class="text-sm">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="font-medium text-gray-800">What are the top reasons for denials within UHC?</div>
-                        <div class="flex items-center">
-                            <span class="text-orange-500 text-xs mr-2">In-Progress</span>
-                            <div class="status-dot bg-orange-500 rounded-full"></div>
-                        </div>
-                    </div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
-
-                <div class="text-sm">
-                    <div class="font-medium text-gray-800 mb-1">Market Structure analysis</div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
-
-                <div class="text-sm">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="font-medium text-gray-800">What share of patients get treated on Enhertu?</div>
-                        <div class="flex items-center">
-                            <span class="text-green-500 text-xs mr-2">Completed</span>
-                            <div class="status-dot bg-green-500 rounded-full"></div>
-                        </div>
-                    </div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
-
-                <div class="text-sm">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="font-medium text-gray-800">How does Enhertu share vary by line?</div>
-                        <div class="flex items-center">
-                            <span class="text-green-500 text-xs mr-2">Completed</span>
-                            <div class="status-dot bg-green-500 rounded-full"></div>
-                        </div>
-                    </div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
-
-                <div class="text-sm">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="font-medium text-gray-800">What are the top reasons for denials within UHC?</div>
-                        <div class="flex items-center">
-                            <span class="text-orange-500 text-xs mr-2">In-Progress</span>
-                            <div class="status-dot bg-orange-500 rounded-full"></div>
-                        </div>
-                    </div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div class="p-6 border-t border-gray-300">
-            <div class="flex items-center space-x-4">
-                <button class="text-gray-500 hover:text-gray-700 text-xl">
-                    <i class="fas fa-cog"></i>
-                </button>
-                <div class="sidebar-content flex items-center space-x-4">
-                    <button class="text-gray-500 hover:text-gray-700 text-xl">
-                        <i class="fas fa-question-circle"></i>
-                    </button>
-                    <div class="w-8 h-8 bg-gray-400 rounded-full"></div>
-                </div>
-            </div>
+        <div class="flex items-center space-x-4">
+            <button class="text-white/80 hover:text-white text-xl">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button class="text-white/80 hover:text-white text-xl">
+                <i class="fas fa-question-circle"></i>
+            </button>
+            <div class="w-8 h-8 bg-white/20 rounded-full"></div>
         </div>
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 gradient-bg flex flex-col items-center justify-center text-white relative">
+    <div class="flex-1 flex flex-col items-center justify-center text-white relative px-6">
         <!-- Welcome Message -->
         <div class="text-center mb-12">
             <h1 class="text-6xl font-light mb-6">
@@ -256,21 +166,7 @@
     <script>
         let sidebarCollapsed = false;
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('mainSidebar');
-            sidebarCollapsed = !sidebarCollapsed;
-
-            if (sidebarCollapsed) {
-                sidebar.classList.add('collapsed');
-            } else {
-                sidebar.classList.remove('collapsed');
-            }
-
-            // Save state
-            if (window.analyticsState) {
-                window.analyticsState.setSidebarCollapsed(sidebarCollapsed);
-            }
-        }
+        // Removed sidebar toggle functionality
 
         function navigateToIndication(indication) {
             const indicationNames = {
@@ -314,13 +210,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Healthcare Analytics Platform loaded successfully!');
 
-            // Initialize sidebar state
-            if (window.analyticsState) {
-                sidebarCollapsed = window.analyticsState.isSidebarCollapsed();
-                if (sidebarCollapsed) {
-                    document.getElementById('mainSidebar').classList.add('collapsed');
-                }
-            }
+            // Removed sidebar state initialization
 
             // Add typing animation to placeholder
             const input = document.getElementById('analysisInput');
