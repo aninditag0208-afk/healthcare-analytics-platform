@@ -269,80 +269,82 @@
 
                 <!-- Tab Content -->
                 <div id="analysisContent" class="tab-content active space-y-6">
-                    <!-- Key Metrics Row -->
-                    <div class="grid grid-cols-4 gap-4">
-                    <div class="metric-card">
-                        <div class="flex items-center justify-between mb-2">
-                            <i class="fas fa-users text-xl"></i>
-                            <span class="text-xs opacity-80">Total Patients</span>
+                    <!-- Market Access Analysis Summary -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Market Access Analysis Summary</h2>
+                        <div class="grid grid-cols-4 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-blue-600 mb-1" id="totalPatients">2,847</div>
+                                <div class="text-sm text-gray-600">Total Patients</div>
+                                <div class="text-xs text-green-600 mt-1">↑ 12% vs Q3</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-teal-600 mb-1" id="marketShare">34.2%</div>
+                                <div class="text-sm text-gray-600">Market Share</div>
+                                <div class="text-xs text-green-600 mt-1">↑ 3.2% vs Q3</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-purple-600 mb-1" id="timeToTreatment">21</div>
+                                <div class="text-sm text-gray-600">Avg Days to Treatment</div>
+                                <div class="text-xs text-green-600 mt-1">↓ 8 days vs benchmark</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-orange-600 mb-1" id="persistence">78%</div>
+                                <div class="text-sm text-gray-600">Treatment Persistence</div>
+                                <div class="text-xs text-green-600 mt-1">Above industry avg</div>
+                            </div>
                         </div>
-                        <div class="text-2xl font-bold" id="totalPatients">-</div>
-                        <div class="text-xs opacity-80">+12% vs last quarter</div>
                     </div>
 
-                    <div class="metric-card">
-                        <div class="flex items-center justify-between mb-2">
-                            <i class="fas fa-chart-line text-xl"></i>
-                            <span class="text-xs opacity-80">Market Share</span>
+                    <!-- Charts Grid - Three Main Charts -->
+                    <div class="grid grid-cols-3 gap-6">
+                        <!-- Drug Episode Claims vs Gaps -->
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Drug Episode Claims vs Gaps</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="drugEpisodeChart"></canvas>
+                            </div>
                         </div>
-                        <div class="text-2xl font-bold" id="marketShare">-</div>
-                        <div class="text-xs opacity-80">+3.2% vs last quarter</div>
+
+                        <!-- Market Share by Lines of Therapy -->
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Market Share by Lines of Therapy</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="marketShareChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Payer Coverage Analysis -->
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Payer Coverage Distribution</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="payerChart"></canvas>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="metric-card">
-                        <div class="flex items-center justify-between mb-2">
-                            <i class="fas fa-clock text-xl"></i>
-                            <span class="text-xs opacity-80">Avg Time to Treatment</span>
+                    <!-- Drug Episodes Table -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Drug Episodes by Indication</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indication</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Drug Episodes</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Duration (Days)</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gap Threshold (Days)</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">75th Percentile Gap</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">95th Percentile Gap</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="drugEpisodesTableBody">
+                                    <!-- Table data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="text-2xl font-bold" id="timeToTreatment">-</div>
-                        <div class="text-xs opacity-80">-8 days vs benchmark</div>
-                    </div>
-
-                    <div class="metric-card">
-                        <div class="flex items-center justify-between mb-2">
-                            <i class="fas fa-percentage text-xl"></i>
-                            <span class="text-xs opacity-80">Treatment Persistence</span>
-                        </div>
-                        <div class="text-2xl font-bold" id="persistence">-</div>
-                        <div class="text-xs opacity-80">Above industry avg</div>
                     </div>
                 </div>
-
-                <!-- Charts Grid -->
-                <div class="grid grid-cols-2 gap-6">
-                    <!-- Market Share Chart -->
-                    <div class="chart-container">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Market Share Distribution</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="marketShareChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Treatment Pathway Chart -->
-                    <div class="chart-container">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Treatment Pathway Flow</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="pathwayChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Payer Analysis Chart -->
-                    <div class="chart-container">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Payer Coverage Analysis</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="payerChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Outcome Trends Chart -->
-                    <div class="chart-container">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Outcome Trends</h3>
-                        <div class="chart-wrapper">
-                            <canvas id="outcomeChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
                 <!-- Deep Research Tab Content -->
                 <div id="researchContent" class="tab-content space-y-6">
@@ -635,19 +637,19 @@
                 'ovarian-cancer': {
                     totalPatients: '2,847',
                     marketShare: '34.2%',
-                    timeToTreatment: '21 days',
+                    timeToTreatment: '21',
                     persistence: '78%'
                 },
                 'breast-cancer': {
                     totalPatients: '15,623',
                     marketShare: '42.8%',
-                    timeToTreatment: '18 days',
+                    timeToTreatment: '18',
                     persistence: '85%'
                 },
                 'igan': {
                     totalPatients: '892',
                     marketShare: '28.6%',
-                    timeToTreatment: '35 days',
+                    timeToTreatment: '35',
                     persistence: '72%'
                 }
             };
@@ -658,6 +660,76 @@
             document.getElementById('marketShare').textContent = data.marketShare;
             document.getElementById('timeToTreatment').textContent = data.timeToTreatment;
             document.getElementById('persistence').textContent = data.persistence;
+        }
+
+        function populateDrugEpisodesTable() {
+            const tableBody = document.getElementById('drugEpisodesTableBody');
+
+            const drugEpisodesData = [
+                {
+                    indication: 'Heart Failure',
+                    episodes: '1,247',
+                    avgDuration: '284',
+                    gapThreshold: '30',
+                    percentile75: '45',
+                    percentile95: '60'
+                },
+                {
+                    indication: 'Rheumatoid Arthritis',
+                    episodes: '892',
+                    avgDuration: '196',
+                    gapThreshold: '45',
+                    percentile75: '68',
+                    percentile95: '90'
+                },
+                {
+                    indication: 'Diabetes Type 2',
+                    episodes: '1,568',
+                    avgDuration: '365',
+                    gapThreshold: '30',
+                    percentile75: '45',
+                    percentile95: '60'
+                },
+                {
+                    indication: 'Hypertension',
+                    episodes: '2,134',
+                    avgDuration: '312',
+                    gapThreshold: '30',
+                    percentile75: '45',
+                    percentile95: '60'
+                },
+                {
+                    indication: 'COPD',
+                    episodes: '743',
+                    avgDuration: '198',
+                    gapThreshold: '30',
+                    percentile75: '45',
+                    percentile95: '60'
+                }
+            ];
+
+            tableBody.innerHTML = drugEpisodesData.map(row => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-4 text-sm font-medium text-gray-900">${row.indication}</td>
+                    <td class="px-4 py-4 text-sm text-gray-900">${row.episodes}</td>
+                    <td class="px-4 py-4 text-sm text-gray-900">${row.avgDuration}</td>
+                    <td class="px-4 py-4 text-sm text-gray-900">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            ${row.gapThreshold} days
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-900">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ${row.percentile75} days
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-900">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            ${row.percentile95} days
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
         }
 
         function initializeCharts() {
@@ -682,44 +754,22 @@
                 }
             };
 
-            // Market Share Chart
-            const marketCtx = document.getElementById('marketShareChart').getContext('2d');
-            new Chart(marketCtx, {
-                type: 'pie',
-                data: {
-                    labels: ['Our Product', 'Competitor A', 'Competitor B', 'Others'],
-                    datasets: [{
-                        data: [34.2, 28.5, 22.1, 15.2],
-                        backgroundColor: ['#2dd4bf', '#0d4f4f', '#7dd3fc', '#94a3b8'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    plugins: {
-                        ...chartOptions.plugins,
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ' + context.parsed + '%';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Treatment Pathway Chart
-            const pathwayCtx = document.getElementById('pathwayChart').getContext('2d');
-            new Chart(pathwayCtx, {
+            // Drug Episode Claims vs Gaps Chart
+            const drugEpisodeCtx = document.getElementById('drugEpisodeChart').getContext('2d');
+            new Chart(drugEpisodeCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['1st Line', '2nd Line', '3rd Line', '4th+ Line'],
+                    labels: ['Heart Failure', 'Rheumatoid Arthritis', 'Diabetes Type 2', 'Hypertension', 'COPD'],
                     datasets: [{
-                        label: 'Patients',
-                        data: [2847, 1823, 892, 234],
-                        backgroundColor: '#2dd4bf',
+                        label: 'Drug Episodes',
+                        data: [1247, 892, 1568, 2134, 743],
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 4,
+                        borderSkipped: false
+                    }, {
+                        label: 'Treatment Gaps',
+                        data: [312, 178, 294, 427, 156],
+                        backgroundColor: '#EF4444',
                         borderRadius: 4,
                         borderSkipped: false
                     }]
@@ -745,65 +795,53 @@
                             ticks: {
                                 font: {
                                     size: 11
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        ...chartOptions.plugins,
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-
-            // Payer Chart
-            const payerCtx = document.getElementById('payerChart').getContext('2d');
-            new Chart(payerCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Commercial', 'Medicare', 'Medicaid', 'Other'],
-                    datasets: [{
-                        data: [45.2, 32.8, 15.6, 6.4],
-                        backgroundColor: ['#0d4f4f', '#2dd4bf', '#7dd3fc', '#94a3b8'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    ...chartOptions,
-                    cutout: '60%',
-                    plugins: {
-                        ...chartOptions.plugins,
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ' + context.parsed + '%';
-                                }
+                                },
+                                maxRotation: 45
                             }
                         }
                     }
                 }
             });
 
-            // Outcome Trends Chart
-            const outcomeCtx = document.getElementById('outcomeChart').getContext('2d');
-            new Chart(outcomeCtx, {
+            // Market Share by Lines of Therapy Chart
+            const marketCtx = document.getElementById('marketShareChart').getContext('2d');
+            new Chart(marketCtx, {
                 type: 'line',
                 data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    labels: ['1st Line', '2nd Line', '3rd Line', '4th+ Line'],
                     datasets: [{
-                        label: 'Patient Starts',
-                        data: [234, 287, 345, 423, 512, 587],
+                        label: 'Our Product',
+                        data: [34.2, 28.5, 22.1, 15.2],
                         borderColor: '#2dd4bf',
                         backgroundColor: 'rgba(45, 212, 191, 0.1)',
                         tension: 0.4,
                         pointBackgroundColor: '#2dd4bf',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
-                        pointRadius: 5,
-                        fill: true
+                        pointRadius: 6,
+                        fill: false
+                    }, {
+                        label: 'Competitor A',
+                        data: [28.5, 32.1, 35.8, 41.2],
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        tension: 0.4,
+                        pointBackgroundColor: '#8B5CF6',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        fill: false
+                    }, {
+                        label: 'Competitor B',
+                        data: [22.1, 25.3, 28.7, 32.4],
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        pointBackgroundColor: '#F59E0B',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        fill: false
                     }]
                 },
                 options: {
@@ -811,12 +849,16 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            max: 50,
                             grid: {
                                 color: '#f3f4f6'
                             },
                             ticks: {
                                 font: {
                                     size: 11
+                                },
+                                callback: function(value) {
+                                    return value + '%';
                                 }
                             }
                         },
@@ -830,15 +872,41 @@
                                 }
                             }
                         }
-                    },
+                    }
+                }
+            });
+
+            // Payer Coverage Distribution Chart
+            const payerCtx = document.getElementById('payerChart').getContext('2d');
+            new Chart(payerCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Commercial', 'Medicare', 'Medicaid', 'Cash/Other'],
+                    datasets: [{
+                        data: [45.2, 32.8, 15.6, 6.4],
+                        backgroundColor: ['#0EA5E9', '#10B981', '#F59E0B', '#6B7280'],
+                        borderWidth: 3,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    ...chartOptions,
+                    cutout: '65%',
                     plugins: {
                         ...chartOptions.plugins,
-                        legend: {
-                            display: false
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
                         }
                     }
                 }
             });
+
+            // Populate Drug Episodes Table
+            populateDrugEpisodesTable();
         }
 
         function toggleSidebar() {
