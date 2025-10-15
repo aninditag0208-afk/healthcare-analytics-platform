@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Healthcare Analytics Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="analytics-state.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .gradient-bg {
@@ -232,7 +233,7 @@
     <script>
         function navigateToIndication(indication) {
             const indicationNames = {
-                'ovarian-cancer': 'Ovarian Cancer',
+                'ovarian-cancer': 'Ovarian Cancer HER2+',
                 'igan': 'IgAN',
                 'breast-cancer': 'Breast Cancer'
             };
@@ -240,6 +241,11 @@
             // Store the selected indication in sessionStorage
             sessionStorage.setItem('selectedIndication', indication);
             sessionStorage.setItem('indicationDisplayName', indicationNames[indication]);
+
+            // Initialize analytics state if available
+            if (window.analyticsState) {
+                console.log('Analytics state available for indication selection');
+            }
 
             // Navigate to the indication analysis page
             window.location.href = `indication-analysis.html?indication=${indication}`;

@@ -6,6 +6,7 @@
     <title>Analytics Dashboard - Healthcare Analytics Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="analytics-state.js"></script>
     <script src="gemini-config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -23,7 +24,22 @@
         .insights-panel {
             background: rgba(255, 255, 255, 0.98);
             border: 1px solid rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .insights-panel.collapsed {
+            width: 60px !important;
+        }
+
+        .insights-panel.collapsed .insights-title,
+        .insights-panel.collapsed .collapsible-content {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .insights-title {
+            transition: opacity 0.3s ease;
         }
 
         .chart-container {
@@ -32,6 +48,14 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            height: 350px;
+            position: relative;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 280px;
+            width: 100%;
         }
 
         .metric-card {
@@ -70,16 +94,43 @@
             transition: transform 0.3s ease;
         }
 
-        .collapsed .collapse-btn {
+        .insights-panel.collapsed .collapse-btn {
             transform: rotate(180deg);
         }
 
+        .sidebar-collapsible {
+            transition: width 0.3s ease;
+        }
+
+        .sidebar-collapsible.collapsed {
+            width: 60px;
+        }
+
+        .sidebar-collapsible.collapsed .sidebar-content {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .sidebar-content {
+            transition: opacity 0.3s ease 0.1s;
+        }
+
         .collapsible-content {
-            transition: all 0.3s ease;
+            transition: opacity 0.3s ease;
             overflow: hidden;
         }
 
-        .collapsed .collapsible-content {
+        .insights-panel.collapsed .collapsible-content {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .chat-collapsible-content {
+            transition: height 0.3s ease;
+            overflow: hidden;
+        }
+
+        .chat-collapsed .chat-collapsible-content {
             height: 0 !important;
             padding-top: 0 !important;
             padding-bottom: 0 !important;
@@ -92,26 +143,33 @@
 </head>
 <body class="h-screen flex bg-gray-50">
     <!-- Sidebar -->
-    <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col">
+    <div class="w-80 sidebar-bg border-r border-gray-300 flex flex-col sidebar-collapsible" id="mainSidebar">
         <!-- Header -->
         <div class="p-6 border-b border-gray-300">
             <div class="flex items-center mb-6">
                 <div class="w-8 h-8 bg-gray-800 rounded flex items-center justify-center mr-3">
                     <span class="text-white text-sm font-bold">ZS</span>
                 </div>
-                <button class="ml-auto text-gray-500 hover:text-gray-700" onclick="goBack()">
-                    <i class="fas fa-arrow-left text-lg"></i>
-                </button>
+                <div class="sidebar-content flex items-center ml-auto space-x-2">
+                    <button class="text-gray-500 hover:text-gray-700" onclick="goBack()">
+                        <i class="fas fa-arrow-left text-lg"></i>
+                    </button>
+                    <button class="text-gray-500 hover:text-gray-700" onclick="toggleSidebar()">
+                        <i class="fas fa-chevron-left text-lg"></i>
+                    </button>
+                </div>
             </div>
 
-            <button class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors">
-                <i class="fas fa-plus mr-3 text-gray-400"></i>
-                New Analysis
-            </button>
+            <div class="sidebar-content">
+                <button class="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-plus mr-3 text-gray-400"></i>
+                    New Analysis
+                </button>
+            </div>
         </div>
 
         <!-- Search -->
-        <div class="p-6 border-b border-gray-300">
+        <div class="p-6 border-b border-gray-300 sidebar-content">
             <div class="relative">
                 <input type="text" placeholder="Search" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 pl-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
@@ -119,43 +177,12 @@
         </div>
 
         <!-- Analyses Section -->
-        <div class="flex-1 p-6">
+        <div class="flex-1 p-6 sidebar-content">
             <h3 class="text-lg font-semibold text-gray-800 mb-6">Analyses</h3>
 
-            <!-- Current Analysis (highlighted) -->
-            <div class="space-y-4">
-                <div class="text-sm bg-teal-50 border border-teal-200 rounded-lg p-3">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="font-medium text-teal-800" id="currentAnalysisTitle">Loading...</div>
-                        <div class="flex items-center">
-                            <span class="text-orange-500 text-xs mr-2">Running</span>
-                            <div class="status-dot bg-orange-500 rounded-full"></div>
-                        </div>
-                    </div>
-                    <div class="text-teal-600 text-xs" id="currentAnalysisTime">Just now</div>
-                </div>
-
-                <!-- Previous analyses -->
-                <div class="text-sm">
-                    <div class="font-medium text-gray-800 mb-1">5 payers?</div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
-
-                <div class="text-sm">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="font-medium text-gray-800">What are the top reasons for denials within UHC?</div>
-                        <div class="flex items-center">
-                            <span class="text-green-500 text-xs mr-2">Completed</span>
-                            <div class="status-dot bg-green-500 rounded-full"></div>
-                        </div>
-                    </div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
-
-                <div class="text-sm">
-                    <div class="font-medium text-gray-800 mb-1">Market Structure analysis</div>
-                    <div class="text-gray-500 text-xs">8 Sep 2025, 06:55 pm</div>
-                </div>
+            <!-- Dynamic Analysis List -->
+            <div class="space-y-4" id="analysisList">
+                <!-- Analysis items will be populated dynamically -->
             </div>
         </div>
 
@@ -165,10 +192,12 @@
                 <button class="text-gray-500 hover:text-gray-700 text-xl">
                     <i class="fas fa-cog"></i>
                 </button>
-                <button class="text-gray-500 hover:text-gray-700 text-xl">
-                    <i class="fas fa-question-circle"></i>
-                </button>
-                <div class="w-8 h-8 bg-gray-400 rounded-full ml-auto"></div>
+                <div class="sidebar-content flex items-center space-x-4">
+                    <button class="text-gray-500 hover:text-gray-700 text-xl">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                    <div class="w-8 h-8 bg-gray-400 rounded-full"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -243,25 +272,33 @@
                     <!-- Market Share Chart -->
                     <div class="chart-container">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Market Share Distribution</h3>
-                        <canvas id="marketShareChart" width="400" height="300"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="marketShareChart"></canvas>
+                        </div>
                     </div>
 
                     <!-- Treatment Pathway Chart -->
                     <div class="chart-container">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Treatment Pathway Flow</h3>
-                        <canvas id="pathwayChart" width="400" height="300"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="pathwayChart"></canvas>
+                        </div>
                     </div>
 
                     <!-- Payer Analysis Chart -->
                     <div class="chart-container">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Payer Coverage Analysis</h3>
-                        <canvas id="payerChart" width="400" height="300"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="payerChart"></canvas>
+                        </div>
                     </div>
 
                     <!-- Outcome Trends Chart -->
                     <div class="chart-container">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Outcome Trends</h3>
-                        <canvas id="outcomeChart" width="400" height="300"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="outcomeChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -270,7 +307,7 @@
             <div class="w-80 border-l border-gray-200 insights-panel" id="insightsPanel">
                 <div class="p-4 border-b border-gray-200 bg-gray-50">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-800">Key Insights</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 insights-title">Key Insights</h3>
                         <button onclick="toggleInsights()" class="collapse-btn text-gray-500 hover:text-gray-700">
                             <i class="fas fa-chevron-left text-sm"></i>
                         </button>
@@ -349,13 +386,13 @@
                         <h3 class="text-lg font-semibold text-gray-800">AI Assistant</h3>
                         <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Online</span>
                     </div>
-                    <button onclick="toggleChat()" class="collapse-btn text-gray-500 hover:text-gray-700">
+                    <button onclick="toggleChat()" class="collapse-btn text-gray-500 hover:text-gray-700" id="chatToggleBtn">
                         <i class="fas fa-chevron-up text-sm"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="collapsible-content" id="chatContent" style="height: 300px;">
+            <div class="chat-collapsible-content" id="chatContent" style="height: 300px;">
                 <div class="p-4 h-64 overflow-y-auto" id="chatMessages">
                     <div class="chat-message mb-4">
                         <div class="flex items-start space-x-3">
@@ -397,6 +434,7 @@
         // Global variables
         let chatCollapsed = false;
         let insightsCollapsed = false;
+        let sidebarCollapsed = false;
         let geminiAPI;
 
         // Initialize dashboard
@@ -406,6 +444,8 @@
             initializeCharts();
             setupChatInput();
             initializeGeminiAPI();
+            setupAnalyticsState();
+            populateAnalysisList();
         });
 
         function initializeGeminiAPI() {
@@ -415,6 +455,68 @@
             } else {
                 console.log('Gemini API not available, using mock responses');
             }
+        }
+
+        function setupAnalyticsState() {
+            if (window.analyticsState) {
+                // Subscribe to analytics state changes
+                window.analyticsState.subscribe((event, data) => {
+                    if (event === 'analysisAdded' || event === 'analysisUpdated') {
+                        populateAnalysisList();
+                    }
+                });
+
+                // Load sidebar collapsed state
+                sidebarCollapsed = window.analyticsState.isSidebarCollapsed();
+                if (sidebarCollapsed) {
+                    document.getElementById('mainSidebar').classList.add('collapsed');
+                }
+            }
+        }
+
+        function populateAnalysisList() {
+            const analysisList = document.getElementById('analysisList');
+            if (!analysisList || !window.analyticsState) return;
+
+            const analyses = window.analyticsState.getAnalyses();
+            const currentAnalysis = window.analyticsState.getCurrentAnalysis();
+
+            analysisList.innerHTML = '';
+
+            analyses.forEach(analysis => {
+                const statusInfo = window.analyticsState.getStatusInfo(analysis.status);
+                const timeText = window.analyticsState.formatTimestamp(analysis.timestamp);
+                const isCurrentAnalysis = currentAnalysis && currentAnalysis.id === analysis.id;
+
+                const analysisElement = document.createElement('div');
+                analysisElement.className = `text-sm ${isCurrentAnalysis ? 'bg-teal-50 border border-teal-200 rounded-lg p-3' : ''}`;
+
+                analysisElement.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="font-medium ${isCurrentAnalysis ? 'text-teal-800' : 'text-gray-800'} truncate pr-2">
+                            ${analysis.title}
+                        </div>
+                        ${analysis.status !== 'pending' ? `
+                            <div class="flex items-center flex-shrink-0">
+                                <span class="${statusInfo.color} text-xs mr-2">${statusInfo.text}</span>
+                                <div class="status-dot ${statusInfo.bgColor} rounded-full"></div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="${isCurrentAnalysis ? 'text-teal-600' : 'text-gray-500'} text-xs">
+                        ${timeText}
+                    </div>
+                    ${analysis.status === 'running' && analysis.progress !== undefined ? `
+                        <div class="mt-2">
+                            <div class="bg-gray-200 rounded-full h-1">
+                                <div class="bg-blue-500 h-1 rounded-full transition-all duration-300" style="width: ${analysis.progress}%"></div>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+
+                analysisList.appendChild(analysisElement);
+            });
         }
 
         function loadSessionData() {
@@ -478,6 +580,27 @@
         }
 
         function initializeCharts() {
+            // Chart configuration with proper responsive settings
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            };
+
             // Market Share Chart
             const marketCtx = document.getElementById('marketShareChart').getContext('2d');
             new Chart(marketCtx, {
@@ -486,15 +609,21 @@
                     labels: ['Our Product', 'Competitor A', 'Competitor B', 'Others'],
                     datasets: [{
                         data: [34.2, 28.5, 22.1, 15.2],
-                        backgroundColor: ['#2dd4bf', '#0d4f4f', '#7dd3fc', '#94a3b8']
+                        backgroundColor: ['#2dd4bf', '#0d4f4f', '#7dd3fc', '#94a3b8'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    ...chartOptions,
                     plugins: {
-                        legend: {
-                            position: 'bottom'
+                        ...chartOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
                         }
                     }
                 }
@@ -509,15 +638,40 @@
                     datasets: [{
                         label: 'Patients',
                         data: [2847, 1823, 892, 234],
-                        backgroundColor: '#2dd4bf'
+                        backgroundColor: '#2dd4bf',
+                        borderRadius: 4,
+                        borderSkipped: false
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    ...chartOptions,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f3f4f6'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                            display: false
                         }
                     }
                 }
@@ -531,15 +685,22 @@
                     labels: ['Commercial', 'Medicare', 'Medicaid', 'Other'],
                     datasets: [{
                         data: [45.2, 32.8, 15.6, 6.4],
-                        backgroundColor: ['#0d4f4f', '#2dd4bf', '#7dd3fc', '#94a3b8']
+                        backgroundColor: ['#0d4f4f', '#2dd4bf', '#7dd3fc', '#94a3b8'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    ...chartOptions,
+                    cutout: '60%',
                     plugins: {
-                        legend: {
-                            position: 'bottom'
+                        ...chartOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
                         }
                     }
                 }
@@ -556,32 +717,78 @@
                         data: [234, 287, 345, 423, 512, 587],
                         borderColor: '#2dd4bf',
                         backgroundColor: 'rgba(45, 212, 191, 0.1)',
-                        tension: 0.4
+                        tension: 0.4,
+                        pointBackgroundColor: '#2dd4bf',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        fill: true
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    ...chartOptions,
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f3f4f6'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...chartOptions.plugins,
+                        legend: {
+                            display: false
                         }
                     }
                 }
             });
         }
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            sidebarCollapsed = !sidebarCollapsed;
+
+            if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+
+            // Save state
+            if (window.analyticsState) {
+                window.analyticsState.setSidebarCollapsed(sidebarCollapsed);
+            }
+        }
+
         function toggleChat() {
             const chatPanel = document.getElementById('chatPanel');
             const chatContent = document.getElementById('chatContent');
-            const collapseBtn = chatPanel.querySelector('.collapse-btn i');
+            const collapseBtn = document.getElementById('chatToggleBtn').querySelector('i');
 
             chatCollapsed = !chatCollapsed;
 
             if (chatCollapsed) {
+                chatPanel.classList.add('chat-collapsed');
                 chatContent.style.height = '0';
                 collapseBtn.className = 'fas fa-chevron-down text-sm';
             } else {
+                chatPanel.classList.remove('chat-collapsed');
                 chatContent.style.height = '300px';
                 collapseBtn.className = 'fas fa-chevron-up text-sm';
             }
@@ -589,16 +796,13 @@
 
         function toggleInsights() {
             const insightsPanel = document.getElementById('insightsPanel');
-            const insightsContent = document.getElementById('insightsContent');
 
             insightsCollapsed = !insightsCollapsed;
 
             if (insightsCollapsed) {
                 insightsPanel.classList.add('collapsed');
-                insightsPanel.style.width = '60px';
             } else {
                 insightsPanel.classList.remove('collapsed');
-                insightsPanel.style.width = '320px';
             }
         }
 

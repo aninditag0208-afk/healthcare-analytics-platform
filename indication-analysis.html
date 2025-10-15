@@ -162,118 +162,77 @@
         <div class="flex-1 px-6 pb-6">
             <div class="grid grid-cols-2 gap-6 max-w-6xl">
                 <!-- Market Access Analysis -->
-                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('market-access')">
-                    <div class="flex items-start justify-between mb-6">
-                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-chart-line text-2xl"></i>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-gray-600 text-sm font-medium">Available</div>
-                            <div class="text-green-500 text-xs">Ready to run</div>
-                        </div>
+                <div class="analysis-card rounded-lg p-6 cursor-pointer" onclick="navigateToAnalysis('market-access')">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Market Access Analysis</h3>
+                        <i class="fas fa-chevron-right arrow-icon text-lg"></i>
                     </div>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Market Access Analysis</h3>
-                    <p class="text-gray-600 mb-4">Analyze payer coverage, prior authorization requirements, and formulary positioning across different health plans.</p>
-                    <div class="flex items-center text-teal-600 font-medium">
-                        <span>Start Analysis</span>
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </div>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Assess how easily patients can get access to treatments given reimbursement, regulatory, and pricing barriers
+                    </p>
                 </div>
 
                 <!-- Referral Pattern Analysis -->
-                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('referral-pattern')">
-                    <div class="flex items-start justify-between mb-6">
-                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-network-wired text-2xl"></i>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-gray-600 text-sm font-medium">Available</div>
-                            <div class="text-green-500 text-xs">Ready to run</div>
-                        </div>
+                <div class="analysis-card rounded-lg p-6 cursor-pointer" onclick="navigateToAnalysis('referral-pattern')">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Referral Pattern Analysis</h3>
+                        <i class="fas fa-chevron-right arrow-icon text-lg"></i>
                     </div>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Referral Pattern Analysis</h3>
-                    <p class="text-gray-600 mb-4">Understand referral pathways between primary care, specialists, and treatment centers for optimal patient routing.</p>
-                    <div class="flex items-center text-teal-600 font-medium">
-                        <span>Start Analysis</span>
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </div>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Examine how patients move between providers or care settings to identify referral flows and gaps
+                    </p>
                 </div>
 
                 <!-- Care Gap Analysis -->
-                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('care-gap')">
-                    <div class="flex items-start justify-between mb-6">
-                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-2xl"></i>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-gray-600 text-sm font-medium">Available</div>
-                            <div class="text-green-500 text-xs">Ready to run</div>
-                        </div>
+                <div class="analysis-card rounded-lg p-6 cursor-pointer" onclick="navigateToAnalysis('care-gap')">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Care Gap Analysis</h3>
+                        <i class="fas fa-chevron-right arrow-icon text-lg"></i>
                     </div>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Care Gap Analysis</h3>
-                    <p class="text-gray-600 mb-4">Identify gaps in care delivery, missed opportunities for intervention, and areas for care improvement.</p>
-                    <div class="flex items-center text-teal-600 font-medium">
-                        <span>Start Analysis</span>
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </div>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Identify missing or delayed care relative to clinical guidelines across populations
+                    </p>
                 </div>
 
                 <!-- Treatment Pathway Analysis -->
-                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('treatment-pathway')">
-                    <div class="flex items-start justify-between mb-6">
-                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-route text-2xl"></i>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-gray-600 text-sm font-medium">Available</div>
-                            <div class="text-green-500 text-xs">Ready to run</div>
-                        </div>
+                <div class="analysis-card rounded-lg p-6 cursor-pointer" onclick="navigateToAnalysis('treatment-pathway')">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Treatment Pathway Analysis</h3>
+                        <i class="fas fa-chevron-right arrow-icon text-lg"></i>
                     </div>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Treatment Pathway Analysis</h3>
-                    <p class="text-gray-600 mb-4">Map complete treatment journeys from diagnosis to outcomes, including line sequencing and switching patterns.</p>
-                    <div class="flex items-center text-teal-600 font-medium">
-                        <span>Start Analysis</span>
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </div>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Map the typical sequence of care steps a patient follows from diagnosis through treatment and follow-up
+                    </p>
                 </div>
 
                 <!-- Market Structure Analysis -->
-                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('market-structure')">
-                    <div class="flex items-start justify-between mb-6">
-                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-chart-pie text-2xl"></i>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-gray-600 text-sm font-medium">Available</div>
-                            <div class="text-green-500 text-xs">Ready to run</div>
-                        </div>
+                <div class="analysis-card rounded-lg p-6 cursor-pointer" onclick="navigateToAnalysis('market-structure')">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Market Structure Analysis</h3>
+                        <i class="fas fa-chevron-right arrow-icon text-lg"></i>
                     </div>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Market Structure Analysis</h3>
-                    <p class="text-gray-600 mb-4">Analyze competitive landscape, market share dynamics, and positioning across therapeutic segments.</p>
-                    <div class="flex items-center text-teal-600 font-medium">
-                        <span>Start Analysis</span>
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </div>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Understand the competitive layout, stakeholder roles, and segmentation within a therapeutic or geographic market
+                    </p>
                 </div>
 
                 <!-- Persistency Analysis -->
-                <div class="analysis-card rounded-xl p-8 cursor-pointer" onclick="navigateToAnalysis('persistency')">
-                    <div class="flex items-start justify-between mb-6">
-                        <div class="analysis-icon w-16 h-16 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-clock text-2xl"></i>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-gray-600 text-sm font-medium">Available</div>
-                            <div class="text-green-500 text-xs">Ready to run</div>
-                        </div>
+                <div class="analysis-card rounded-lg p-6 cursor-pointer" onclick="navigateToAnalysis('persistency')">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Persistency Analysis</h3>
+                        <i class="fas fa-chevron-right arrow-icon text-lg"></i>
                     </div>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">Persistency Analysis</h3>
-                    <p class="text-gray-600 mb-4">Evaluate treatment adherence patterns, discontinuation rates, and factors affecting therapy persistence.</p>
-                    <div class="flex items-center text-teal-600 font-medium">
-                        <span>Start Analysis</span>
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </div>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Measure how long patients stay on a therapy or how often they drop off treatment
+                    </p>
                 </div>
+            </div>
+
+            <!-- View More Link -->
+            <div class="mt-8 text-center">
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
+                    View more
+                </a>
             </div>
         </div>
     </div>
