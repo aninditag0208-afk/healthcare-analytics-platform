@@ -12,6 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="analytics-state.js"></script>
     <script src="gemini-config.js"></script>
+    <script src="patient-journey-knowledge.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .gradient-bg {
@@ -302,6 +303,13 @@
 
                     async generateResponse(userMessage, context = '') {
                         try {
+                            // Get relevant knowledge from Patient Journey Rules based on current indication
+                            let knowledgeContext = '';
+                            if (window.PatientJourneyKnowledge && (currentIndication === 'AML' || currentIndication === 'HER2+ Breast Cancer')) {
+                                const indicationKey = currentIndication === 'AML' ? 'aml' : 'her2_breast_cancer';
+                                knowledgeContext = window.PatientJourneyKnowledge.generateLLMContext(indicationKey, userMessage) || '';
+                            }
+
                             const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
                                 method: 'POST',
                                 headers: {
@@ -310,15 +318,17 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `You are an AI assistant helping with healthcare analytics dashboard interpretation.
+                                            text: `You are an AI assistant helping with healthcare analytics dashboard interpretation using validated clinical rules.
 
 Healthcare Context: You're analyzing ${currentIndication} data for ${currentAnalysis}. In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing.
 
-Current Context: ${context}
+${knowledgeContext}
+
+Current Dashboard Context: ${context}
 
 User question: ${userMessage}
 
-Provide helpful insights about the data patterns, business rules, or recommendations. Be concise and healthcare-focused.`
+Provide helpful insights about the data patterns, business rules, or recommendations based on the validated Patient Journey Rules above. Reference specific drugs, treatment phases, or progression rules when relevant for ${currentIndication}. Be concise and healthcare-focused.`
                                         }]
                                     }],
                                     generationConfig: {

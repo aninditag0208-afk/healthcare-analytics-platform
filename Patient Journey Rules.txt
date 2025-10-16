@@ -1,0 +1,199 @@
+                            Patient Journey Rules
+                           Market Area- Oncology
+
+1. Breast HER2+
+1a. Patient Funnel
+
+Rule 1 - Breast Cancer Diagnosed Patients: Identifying all Breast cancer patients based on ICD-9 and ICD-10 diagnosis codes
+Rule 2 - Minimum Two Primary Diagnosis atleast 15 days apart: 2 diagnoses to ensure that we filter out all the mis-diagnosed patients
+Rule 3 - Min 1 year look back: At least one year look back period to ensure that we have entire journey of a patient since 1st breast cancer diagnosis
+Rule 4 - Quarterly eligibility: Ensuring that we have continuous capture in the data for a robust patient journey
+Rule 5 - No treatment before diagnosis: Filtering for patients without any prior treatment to ensure that the patient has data from his first diagnosis
+Rule 6 - No metastatic claims before diagnosis: Filtering for patients without any prior secondary diagnosis to ensure that the patient has data from his first diagnosis
+Rule 7 - HER2+ Patients: Identifying HER2+ patients based on utilization of backbone drugs for HER2+
+
+Backbone HER2+ drugs - 
+Trastuzumab, Perjeta, Kadcyla, Tykerb, Enhertu, Nerlynx, Phesgo, Tukysa, Margenza
+
+
+
+1b. Episode & Regimen Creation 
+An episode is defined as continuous usage of a drug, where refills occur within the Grace window
+Episodes are created only for the lot relevant treatments (or drugs). 
+How to create episodes :
+	•	Filter for Lot relevant drugs
+	•	For every drug claim, check if the gap between the next fill date and the current rx end date (current fill date + Days of supply) < grace, it is said to be a continuation of the current episode. 
+	•	If the gap > Grace, then the claim is marked as a new episode. 
+Note: Episodes are created for every drug of a patient. 
+
+A regimen is defined as the combination of the treatments undergone by a patient in its journey. They are derived from the episodes 
+
+How to create regimens: 
+	•	From the episode table, where in we have episode start date and end date for every drug, we 
+
+
+
+1c . Lot Initialization Rules
+
+
+
+Treatment A –  Drugs which are only approved for metastatic stage
+Navelbine , Megace ,  Ibrance, Gemcitabine, Faslodex,  
+Aredia, Novantrone, Enhertu , Tukysa , Margenza 
+
+Treatment B – 
+AC (cyclophosphamide, doxorubicin, TC (taxcane, platin), 
+FEC (adrucil, cyclophosphamide, ellence), 
+CMF (adrucil, cyclophosphamide, methotrexate) and chemo regimen are used for early stage breast cancer
+
+
+
+1c. LOT Progression Rules
+
+Rule 1: Movement from one HER2+ drug to another could be due to the previous HER2+ drug is not working & the disease might have worsened. Hence, movement to another HER2+ drug is a progression. Herceptin, Perjeta combination is an exception since Perjeta is often taken along with Herceptin
+
+Rule 2: Addition of any lower priority drug group to a regimen involving a higher priority drug is not a line change. The lower priority drug could be added as a supplement to the main/primary therapy. For ex: addition of a Hormone therapy to a Chemo could indicate the physician has prescribed hormone therapy for HR+ patients
+
+Rule 3: 
+ For regimens without a HER2+ backbone, the switch to a drug from within Chemotherapy or targeted therapy is a progression if previous regimen length >= 90 days (based on suggestions/feedback from the AZ medical team)
+ Movement from AI (Aromatase Inhibitors) to CDK (hormone therapy) and vice versa is a progression. Movement within AI or CDK is a progression if gap between regimens >= 180 days (Hormone therapies are generally taken for lunger durations & also based on suggestions/feedback from the AZ medical team) – (Refer page 60 & 61 of NCCN guidelines (Invasive Breast cancer))
+
+Rule 4: Switch to a HER2+ drug from other groups will be a progression if previous drug usage is for more than 90 days. Else it gets combined (Shifting to a HER2+ targeted therapy from non HER2+ targeted therapy might indicate severeness & diseases progression)
+
+Rule 5: Shifting to a chemo can be indication of severity and hence considered as progression if previous drug usage is for more than 90 days. Else it gets combined
+Rule 6: Usage of a targeted therapy is considered a progression if previous drug usage is for more than 90 days
+
+Rule 7: To prevent relapse, patients in stable state might switch to AI mono regimens. Such cases are not progression. (Need to check the % of such cases in the data)
+
+Rule 8: If current & previous regimens are same & have a gap less than 180 days, then it is not a progression
+
+
+Visual Representation of the Scenarios:
+
+
+
+
+
+Drug Classification For LOT Progression Rules
+
+A – Backbone drugs for HER2+ 
+ TRASTUZUMAB (Herceptin + Biosimilars),  PERJETA , KADCYLA , TYKERB , 
+ENHERTU, NERLYNX , PHESGO, TUKYSA, MARGENZA
+
+B- ChemoTherapy
+	•	Platin-based Chemo – CARBOPLATIN, CISPLATIN, OXALIPLATIN
+	•	Taxane- based Chemo – ABRAXANE, PACLITAXEL, ETOPOSIDE
+	•	 Other Chemos – ETOPOSIDE, VINCRISTINE, CYCLOPHOSPHAMIDE, 
+DOXORUBICIN, ELLENCE, GEMCITABINE,       METHOTREXATE, XELODA, NAVELBINE, ADRUCIL, AFINITOR, ADRUCIL, VINBLASTINE
+C – Hormonal Therapy 
+	•	Aromatese Inhibitors (AI) – ANASTROZOLE, LETROZOLE, TAMOXIFEN,
+EXEMESTANE, FASLODEX, ZOLADEX, EVISTA,     FARESTON
+	•	CDK 4/6 Inhibitors - IBRANCE, VERZENIO, KISQALI
+
+D – HER2- HR+/TNBC Drugs 
+	•	Immunotherapy – KEYTRUDA, OPDIVO, TECENTRIQ, BAVENCIO, 
+YERVOY, IMFINZI
+	•	Other Drugs -   HALAVEN, AVASTIN, WELLCOVORIN, LEUCOVORIN, 
+LYNPARZA, PIQRAY, TRODELVY, ZEJULA, TALZENNA,   ZORTRESS, RUBRACA
+
+
+
+2. Lung SCLC
+
+2a. Patient Funnel
+
+Rule 1 - Lung Cancer Diagnosed Patients: Identifying all Lung cancer patients based on ICD-9 and ICD-10 diagnosis codes
+Rule 2 - At least Two Primary Diagnosis 15 days apart: 2 diagnoses to ensure that we filter out all the mis-diagnosed patients and have a confident patient pool
+Rule 3 – LC patient taking SCLC approved drugs : Filtering SCLC patients based on the proxy drugs
+Rule 4 - Exclude Patients taking NSCLC approved drugs: Removing patients taking NSCLC proxy drugs
+
+SCLC Approved Drug List – ZEPZELCA, IMDELLTRA, TRILACICLIB, ETOPOSIDE,                                                                   TOPOTECAN
+
+NSCLC Approved Drug List – RETEVMO, PEMETREXED, CYRAMZA, PORTRAZZA, YERVOY, VINORELBINE, VIZIMPRO, LORBRENA, BEVACIZUMAB, CRIZOTINIB, ZYKADIA, MEKINIST, TAFINLAR, TABRECTA, ERLOTINIB, GEFITINIB, TAGRISSO, IMJUDO, GILOTRIF, TEPMETKO, EXKIVITY, BAVENCIO, ZELBORAF, ROZLYTREK, ALECENSA, VITRAKVI, LUMAKRAS, RYBREVANT, ALUNBRIG, ENHERTU, ERBITUX, GAVRETO, CABOMETYX, BRAFTOVI, AUGTYRO, KRAZATI, MEKTOVI
+
+
+2B. Metastatic Extensive Stage
+Extensive-stage SCLC (ES-SCLC) is a stage of small cell lung cancer (SCLC) where the cancer has spread beyond the primary lung  and into other parts of the body, including the other lung or distant lymph nodes
+
+Identifying Patients 1st Line of Therapy
+All the therapies post metastatic claim or metastatic drug claim (whichever appears earlier) would be considered extensive stage
+
+	•	Treatments Approved only for Extensive Stage Therapy as Proxy: Includes patients on Tarlatamab, Lurbinectedin, Topotecan, Atezolizumab
+	•	Metastatic Diagnosis Codes: ICD codes for secondary diagnosis confirm disease spread beyond the primary lungs
+
+
+
+
+
+
+
+
+
+2c. LOT Progression Rules
+
+
+
+
+
+                                                        3. AML
+3a. Patient Funnel
+Rule 1 - AML Diagnosed Patients - Patients with at least 1 AML Primary Diagnosis claim 
+
+Rule 2 - Minimum Two Primary Diagnosis at-least 15 days apart or 1 Diagnosis and 1 AML relevant treatment post Initiation: Patients should have either 2 primary diagnoses with at least 15 days gap, or the patient should have 1 diagnosis and 1 AML relevant treatment claims post the initiation
+
+Rule 3 - Min 1 year look back: At least one year look back period to ensure that we have entire journey of a patient since 1st AML diagnosis
+
+Rule 5 - No Remission or Relapse diagnosis before AML diagnosis: Filtering for patients without any prior relapse or remission diagnosis to ensure that the patient has data from his first diagnosis
+
+Rule 6 -At Least 1 AML relevant treatment post Diagnosis: Filtering for patients having at least 1 AML relevant treatment post the diagnosis to filter out all mis-diagnosed patients
+
+
+1b. LOT Rules 
+
+	•	From Induction To - 
+	•	Maintenance – 
+	•	Treatment with ONUREG mark the initiation of Maintenance phase within 90 days post Consolidation end 
+	•	For all other cases without ONUREG, the Maintenance will begin post 24 weeks (Consolidation expected to be for ~6 cycles of 4 weeks treatment post which Maintenance begin) post Remission Dx and end at Relapse Dx
+
+	•	Consolidation – 
+	•	Gap of >60 days from the induction therapy end date 
+	•	Induction Therapy goes on for >=90 days
+	•	SCT occurs during 
+
+
+	•	Refractory - Switching from induction therapy within 60 days of therapy                          start
+
+	•	Relapsed – 
+	•	Switching to one of the Salvage Drugs (Sorafenib or Fludarabine)
+	•	There are 2 consecutive relapse Dx between 15 to 45 days of each other OR
+A single relapse Dx code with any of the Salvage drugs 2  list within -15 to +30 days
+
+	•	From Consolidation To- 
+	•	Maintenance - 168 days (24 weeks) from start of consolidation therapy
+	•	Relapsed – 
+	•	Gap of >180 days post consolidation therapy
+	•	Switching to one of the Salvage Drugs or Mutation specific drugs
+	•	There are 2 consecutive relapse Dx between 15 to 45 days   of each other  OR
+A single relapse Dx code with any of the Salvage drugs 2 within -15 to +30 days
+
+	•	From Maintenance To Relapsed 
+	•	Gap of >180 days post maintenance therapy
+	•	There are 2 consecutive relapse Dx between 15 to 45 days  of each other OR
+A single relapse Dx code any of the Salvage drugs 2 within -15 to +30 days
+
+	•	From Refractory to Relapse – 
+	•	SCT Occurs during refractory stage
+	•	Gap of >180 days post refractory therapy
+	•	Switching to one of the Salvage Drugs to Mutation specific drugs
+	•	There are 2 consecutive relapse Dx between 15 to 45 days   of each other  OR
+A single relapse Dx any of the Salvage drugs 2 within -15 to +30 days
+
+	•	From Relapse to 2+ Relapse – 
+	•	Gap of >90 days post relapse stage
+	•	Switching to new regimen post Relapse therapy
+
+Salvage drugs 2 List – Gilteritinib, Sorafenib, Fludarabine, Enasidenib, Ivosidenib
+    Gemtuzumab Ozogamicin, Midostaurin
+
+
+ 

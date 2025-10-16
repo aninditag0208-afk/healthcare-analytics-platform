@@ -128,14 +128,15 @@
                     </div>
                 </div>
 
-                <!-- HER2+ Breast Cancer -->
-                <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="navigateToIndication('breast-cancer')">
+                <!-- HER2+ Breast Cancer Setup -->
+                <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="handleHER2BreastCancerClick()" id="her2BreastCancerCard">
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-sm font-semibold">HER2+ Breast Cancer</h3>
+                        <div class="status-dot rounded-full" id="her2BreastCancerStatusDot"></div>
                     </div>
-                    <p class="text-xs text-white/80">View</p>
-                    <div class="absolute bottom-3 right-3 text-white/60 group-hover:text-white transition-colors">
-                        <i class="fas fa-arrow-right text-sm"></i>
+                    <p class="text-xs text-white/80" id="her2BreastCancerStatusText">Setup</p>
+                    <div class="absolute bottom-3 right-3 text-white/60">
+                        <i class="fas fa-sliders-h text-sm" id="her2BreastCancerIcon"></i>
                     </div>
                 </div>
                 </div>
@@ -224,6 +225,19 @@
             // If in-progress, do nothing (user can't click)
         }
 
+        function handleHER2BreastCancerClick() {
+            const status = getHER2BreastCancerStatus();
+
+            if (status === 'setup') {
+                // Navigate to conversational setup
+                window.location.href = 'her2-breast-cancer-setup.html';
+            } else if (status === 'completed') {
+                // Navigate to indication analysis
+                navigateToIndication('breast-cancer');
+            }
+            // If in-progress, do nothing (user can't click)
+        }
+
         function setupNewIndication() {
             // Navigate to generic indication setup
             window.location.href = 'generic-setup.html';
@@ -235,6 +249,10 @@
 
         function getAMLStatus() {
             return localStorage.getItem('amlStatus') || 'setup';
+        }
+
+        function getHER2BreastCancerStatus() {
+            return localStorage.getItem('her2BreastCancerStatus') || 'setup';
         }
 
         function updateNSCLCStatus() {
@@ -295,6 +313,37 @@
                     amlIcon.className = 'fas fa-arrow-right text-lg';
                     amlCard.style.cursor = 'pointer';
                     amlCard.style.opacity = '1';
+                    break;
+            }
+        }
+
+        function updateHER2BreastCancerStatus() {
+            const status = getHER2BreastCancerStatus();
+            const statusDot = document.getElementById('her2BreastCancerStatusDot');
+            const statusText = document.getElementById('her2BreastCancerStatusText');
+            const her2BreastCancerIcon = document.getElementById('her2BreastCancerIcon');
+            const her2BreastCancerCard = document.getElementById('her2BreastCancerCard');
+
+            switch(status) {
+                case 'setup':
+                    statusDot.className = 'status-dot bg-gray-400 rounded-full';
+                    statusText.textContent = 'Setup';
+                    her2BreastCancerIcon.className = 'fas fa-sliders-h text-lg';
+                    her2BreastCancerCard.style.cursor = 'pointer';
+                    break;
+                case 'in-progress':
+                    statusDot.className = 'status-dot bg-orange-500 rounded-full';
+                    statusText.textContent = 'In Progress';
+                    her2BreastCancerIcon.className = 'fas fa-spinner fa-spin text-lg';
+                    her2BreastCancerCard.style.cursor = 'not-allowed';
+                    her2BreastCancerCard.style.opacity = '0.7';
+                    break;
+                case 'completed':
+                    statusDot.className = 'status-dot bg-green-500 rounded-full';
+                    statusText.textContent = 'View';
+                    her2BreastCancerIcon.className = 'fas fa-arrow-right text-lg';
+                    her2BreastCancerCard.style.cursor = 'pointer';
+                    her2BreastCancerCard.style.opacity = '1';
                     break;
             }
         }
@@ -392,9 +441,13 @@
             // Update AML status on page load
             updateAMLStatus();
 
+            // Update HER2+ Breast Cancer status on page load
+            updateHER2BreastCancerStatus();
+
             // Check for status changes periodically
             setInterval(updateNSCLCStatus, 1000);
             setInterval(updateAMLStatus, 1000);
+            setInterval(updateHER2BreastCancerStatus, 1000);
 
             // Add typing animation to placeholder
             const input = document.getElementById('analysisInput');

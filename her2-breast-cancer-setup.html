@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AML Analysis Setup - Healthcare Analytics Platform</title>
+    <title>HER2+ Breast Cancer Analysis Setup - Healthcare Analytics Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="analytics-state.js"></script>
     <script src="patient-journey-knowledge.js"></script>
@@ -109,7 +109,7 @@
                     <span class="text-gray-800 text-sm font-bold">ZS</span>
                 </div>
                 <div>
-                    <h1 class="text-white text-lg font-medium">AML Analysis Setup</h1>
+                    <h1 class="text-white text-lg font-medium">HER2+ Breast Cancer Analysis Setup</h1>
                     <p class="text-white/60 text-sm">Configure your patient journey analysis</p>
                 </div>
             </div>
@@ -133,21 +133,21 @@
                         <span class="font-medium">AI Research Assistant</span>
                         <span class="text-xs text-white/60 ml-2">Just now</span>
                     </div>
-                    <p class="mb-3">Hello! I'm here to help you set up your AML patient journey analysis using real-world claims data. I'll ask you some smart questions to configure the perfect analysis for your needs.</p>
-                    <p>Let's start with understanding your research objectives. What specific aspects of the AML patient journey are you most interested in exploring?</p>
+                    <p class="mb-3">Hello! I'm here to help you set up your HER2+ Breast Cancer patient journey analysis using real-world claims data. I'll ask you some smart questions to configure the perfect analysis for your needs.</p>
+                    <p>Let's start with understanding your research objectives. What specific aspects of the HER2+ Breast Cancer patient journey are you most interested in exploring?</p>
                 </div>
             </div>
 
             <!-- Suggested Response Buttons -->
             <div class="flex flex-wrap gap-3 mb-6 ml-14" id="suggestedResponses">
                 <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
-                    Induction treatment patterns
+                    HER2+ targeted therapy patterns
                 </button>
                 <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
-                    Consolidation therapy sequencing
+                    Neoadjuvant/adjuvant sequencing
                 </button>
                 <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
-                    Relapsed/refractory treatment paths
+                    Metastatic treatment pathways
                 </button>
                 <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
                     Time to treatment initiation
@@ -156,10 +156,10 @@
                     Healthcare resource utilization
                 </button>
                 <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
-                    Molecular testing patterns
+                    HER2 testing patterns
                 </button>
                 <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
-                    Stem cell transplant pathways
+                    Hormone receptor co-expression
                 </button>
             </div>
         </div>
@@ -336,35 +336,33 @@
         // Conversation flow and AI responses
         const conversationFlow = {
             1: {
-                question: "Great choice! First, let's clarify the treatment setting for your AML patient journey analysis. Which patient population should we focus on?",
+                question: "Great choice! First, let's clarify the treatment setting for your HER2+ Breast Cancer patient journey analysis. Which patient population should we focus on?",
                 suggestions: [
-                    "Newly diagnosed AML patients",
-                    "Relapsed/refractory AML patients",
-                    "Secondary AML patients",
-                    "All AML patients combined",
-                    "Elderly AML patients (65+)"
+                    "Early-stage HER2+ breast cancer patients",
+                    "Metastatic HER2+ breast cancer patients",
+                    "Neoadjuvant treatment patients",
+                    "Adjuvant treatment patients",
+                    "All HER2+ breast cancer patients combined"
                 ]
             },
             2: {
-                question: "Perfect! Now, are there specific cytogenetic risk categories that should be the focus of your AML analysis? This will help us understand treatment patterns.",
+                question: "Perfect! Now, are there specific hormone receptor co-expression patterns that should be the focus of your HER2+ analysis? This affects treatment selection.",
                 suggestions: [
-                    "Favorable risk cytogenetics",
-                    "Intermediate risk cytogenetics",
-                    "Adverse risk cytogenetics",
-                    "FLT3-ITD mutations",
-                    "NPM1 mutations",
-                    "All risk categories combined",
-                    "No specific cytogenetic focus needed"
+                    "HER2+/HR+ (hormone receptor positive)",
+                    "HER2+/HR- (hormone receptor negative)",
+                    "All HER2+ regardless of HR status",
+                    "Focus on triple positive (HER2+/ER+/PR+)",
+                    "No specific hormone receptor focus needed"
                 ]
             },
             3: {
-                question: "Excellent! Now let's define your patient population. Based on your treatment setting and cytogenetic preferences, how would you like to segment the patients?",
+                question: "Excellent! Now let's define your patient population. Based on your treatment setting and hormone receptor preferences, how would you like to segment the patients?",
                 suggestions: [
                     "All patients in the selected setting",
                     "Treatment-naive patients only",
-                    "Patients with molecular testing performed",
-                    "Elderly patients (65+) ineligible for intensive therapy",
-                    "Fit patients eligible for intensive chemotherapy",
+                    "Patients with HER2 testing performed",
+                    "Elderly patients (65+) with modified treatment approaches",
+                    "Patients eligible for aggressive combination therapy",
                     "Patients with specific performance status (ECOG 0-1)"
                 ]
             },
@@ -379,14 +377,14 @@
                 ]
             },
             5: {
-                question: "Excellent! Now let's create your market basket analysis. For AML patients, are infection complications and treatment-related toxicities critical for your research objectives?",
+                question: "Excellent! Now let's create your market basket analysis. For HER2+ Breast Cancer patients, are cardiac toxicities and treatment-related adverse events critical for your research objectives?",
                 suggestions: [
-                    "Yes, include both infections and treatment toxicities",
-                    "Focus on infection complications only",
+                    "Yes, include both cardiac toxicities and treatment adverse events",
+                    "Focus on cardiac toxicities only (trastuzumab-related)",
                     "Focus on chemotherapy-related toxicities only",
                     "No, focus purely on treatment patterns",
                     "Include only severe adverse events (Grade 3+)",
-                    "Include tumor lysis syndrome and differentiation syndrome"
+                    "Include neuropathy and hand-foot syndrome"
                 ]
             },
             6: {
@@ -394,54 +392,54 @@
                 suggestions: [
                     "Filter by age groups (e.g., 65+ elderly patients)",
                     "Exclude patients with prior cancer treatments",
-                    "Exclude similar diagnosis codes (other hematologic malignancies)",
-                    "Include only de novo AML patients",
-                    "Exclude secondary AML patients",
-                    "No filters - include all AML patients",
+                    "Exclude similar diagnosis codes (other breast cancer subtypes)",
+                    "Include only de novo HER2+ breast cancer patients",
+                    "Exclude patients with metastatic disease at diagnosis",
+                    "No filters - include all HER2+ breast cancer patients",
                     "Custom filtering based on specific criteria"
                 ]
             },
             7: {
-                question: "Now for journey progression logic. Should specific treatment approaches be considered in line advancement decisions?",
+                question: "Now for journey progression logic. Should specific HER2+ treatment approaches be considered in line advancement decisions?",
                 suggestions: [
-                    "Yes, anthracycline-based induction regimens",
-                    "Include hypomethylating agent considerations",
-                    "Consider FLT3 inhibitor resistance patterns",
-                    "Focus on intensive vs. non-intensive switches",
-                    "Include stem cell transplant eligibility",
+                    "Yes, HER2+ backbone drug progressions (Trastuzumab, Perjeta, Kadcyla)",
+                    "Include chemotherapy backbone considerations",
+                    "Consider hormone therapy resistance patterns",
+                    "Focus on targeted vs. chemotherapy switches",
+                    "Include CDK4/6 inhibitor combinations",
                     "Standard progression regardless of backbone"
                 ]
             },
             8: {
-                question: "Great! Now let's configure the patient cohort creation parameters. How would you like to define treatment lines and episode boundaries for AML?",
+                question: "Great! Now let's configure the patient cohort creation parameters. How would you like to define treatment lines and episode boundaries for HER2+ Breast Cancer?",
                 suggestions: [
-                    "Standard line definitions (Induction, Consolidation, Salvage)",
+                    "Standard line definitions (Neoadjuvant, Adjuvant, Metastatic)",
                     "Episode-based on gaps in therapy (30+ days)",
-                    "Molecular marker-driven line progression",
-                    "Performance status-based transitions",
-                    "Transplant-based treatment phases",
+                    "HER2 backbone drug-driven line progression",
+                    "Disease progression-based transitions",
+                    "Surgery-based treatment phases",
                     "Custom line definition criteria"
                 ]
             },
             9: {
-                question: "Excellent! What specific analytics outputs would be most valuable for your AML research? I can configure multiple output types.",
+                question: "Excellent! What specific analytics outputs would be most valuable for your HER2+ Breast Cancer research? I can configure multiple output types.",
                 suggestions: [
                     "Treatment pattern visualizations",
-                    "Time-to-remission analyses",
+                    "Time-to-progression analyses",
                     "Healthcare cost breakdowns",
                     "Overall survival metrics",
-                    "Complete remission rates",
-                    "Transplant referral patterns",
+                    "Pathologic complete response rates",
+                    "Cardiac toxicity monitoring patterns",
                     "Comparative effectiveness data"
                 ]
             },
             10: {
-                question: "Finally, would you like to upload any reports, research papers, or reference materials to inform the AML analysis approach?",
+                question: "Finally, would you like to upload any reports, research papers, or reference materials to inform the HER2+ Breast Cancer analysis approach?",
                 suggestions: [
-                    "Yes, I have NCCN AML guidelines to upload",
-                    "Yes, I have previous AML analysis reports",
-                    "Yes, I have relevant hematology research papers",
-                    "Yes, I have institutional AML treatment protocols",
+                    "Yes, I have NCCN Breast Cancer guidelines to upload",
+                    "Yes, I have previous HER2+ breast cancer analysis reports",
+                    "Yes, I have relevant oncology research papers",
+                    "Yes, I have institutional breast cancer treatment protocols",
                     "No, proceed with standard configuration",
                     "I'll upload materials later"
                 ]
@@ -514,7 +512,7 @@
                     async generateResponse(userMessage, context = '') {
                         try {
                             // Get relevant knowledge from Patient Journey Rules
-                            const knowledgeContext = window.PatientJourneyKnowledge?.generateLLMContext('aml', userMessage) || '';
+                            const knowledgeContext = window.PatientJourneyKnowledge?.generateLLMContext('her2_breast_cancer', userMessage) || '';
 
                             const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
                                 method: 'POST',
@@ -524,11 +522,11 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `You are an AI assistant helping configure AML patient journey analysis from claims data using validated clinical rules.
+                                            text: `You are an AI assistant helping configure HER2+ Breast Cancer patient journey analysis from claims data using validated clinical rules.
 
 Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing. Claims data includes medical claims (procedures, visits) and pharmacy claims (prescriptions).
 
-AML Treatment Context: AML patient journey includes multiple phases - Induction (initial intensive treatment ≥90 days), Consolidation (post-remission, ~6 cycles/24 weeks), Maintenance (long-term prevention with ONUREG or 24 weeks post-consolidation), Refractory (non-responsive within 60 days), and Relapse (recurrence after >180 days or with salvage drugs like Gilteritinib, Sorafenib, Fludarabine, Enasidenib, Ivosidenib).
+HER2+ Breast Cancer Treatment Context: HER2+ Breast Cancer patient journey includes multiple treatment settings - Early-stage (neoadjuvant/adjuvant), Metastatic treatment. Key HER2+ backbone drugs include Trastuzumab (Herceptin), Perjeta, Kadcyla, Tykerb, Enhertu, Nerlynx, Phesgo, Tukysa, Margenza. Line progression rules consider movement between HER2+ drugs, addition of chemotherapy or hormone therapy, and specific duration thresholds (90-180 days).
 
 ${knowledgeContext}
 
@@ -536,7 +534,7 @@ Current Context: ${context}
 
 User message: ${userMessage}
 
-Respond based on the validated Patient Journey Rules above. Be concise, healthcare-focused, acknowledge their input using the clinical knowledge, and help progress to the next AML analysis configuration step. Reference specific rules or drug classifications when relevant.`
+Respond based on the validated Patient Journey Rules above. Be concise, healthcare-focused, acknowledge their input using the clinical knowledge, and help progress to the next HER2+ Breast Cancer analysis configuration step. Reference specific HER2+ drugs, progression rules, or treatment phases when relevant.`
                                         }]
                                     }],
                                     generationConfig: {
@@ -562,11 +560,11 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                         const lowerMessage = userMessage.toLowerCase();
 
                         if (lowerMessage.includes('help') || lowerMessage.includes('confused')) {
-                            return "I understand this might be complex. Let me help you choose the best option for your AML analysis. Would you like me to explain any of these choices in more detail?";
+                            return "I understand this might be complex. Let me help you choose the best option for your HER2+ Breast Cancer analysis. Would you like me to explain any of these choices in more detail?";
                         } else if (lowerMessage.includes('different') || lowerMessage.includes('other')) {
-                            return "I can help you with a custom configuration. Could you tell me more specifically what you're looking for in your AML patient journey analysis?";
+                            return "I can help you with a custom configuration. Could you tell me more specifically what you're looking for in your HER2+ Breast Cancer patient journey analysis?";
                         } else if (lowerMessage.includes('not sure') || lowerMessage.includes('unsure')) {
-                            return "No problem! For most AML studies, I'd recommend starting with the suggested options. We can always refine this later. Which option seems most relevant to your research goals?";
+                            return "No problem! For most HER2+ Breast Cancer studies, I'd recommend starting with the suggested options. We can always refine this later. Which option seems most relevant to your research goals?";
                         } else {
                             return "Thank you for that input. Let me process this and move us to the next step of configuring your analysis.";
                         }
@@ -734,20 +732,20 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                 7: "journey progression logic"
             };
 
-            return `Perfect! I understand your approach to ${stepContext[currentStep] || 'this configuration step'}: "${message}". This gives me valuable insight into your AML analysis needs. Let me continue with the next configuration step.`;
+            return `Perfect! I understand your approach to ${stepContext[currentStep] || 'this configuration step'}: "${message}". This gives me valuable insight into your HER2+ Breast Cancer analysis needs. Let me continue with the next configuration step.`;
         }
 
         function getStepContext(step) {
             const contexts = {
-                1: "defining research objectives for AML patient journey analysis",
+                1: "defining research objectives for HER2+ Breast Cancer patient journey analysis",
                 2: "selecting patient population criteria and inclusion/exclusion requirements",
                 3: "choosing claims databases and data sources for comprehensive coverage",
-                4: "configuring market basket analysis including infections and treatment toxicities",
+                4: "configuring market basket analysis including cardiac toxicities and treatment adverse events",
                 5: "defining patient cohort creation rules and treatment line definitions",
                 6: "setting up episode and regimen creation parameters for treatment tracking",
                 7: "configuring journey progression logic and line advancement rules"
             };
-            return contexts[step] || "configuring AML analysis parameters";
+            return contexts[step] || "configuring HER2+ Breast Cancer analysis parameters";
         }
 
         async function progressToNextStep(userInput) {
@@ -1032,7 +1030,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
 
         async function completeSetup() {
             // Show final AI message
-            addAIMessage("Perfect! I have all the information needed to set up your AML patient journey analysis. Let me process this configuration and prepare your analytics environment...");
+            addAIMessage("Perfect! I have all the information needed to set up your HER2+ Breast Cancer patient journey analysis. Let me process this configuration and prepare your analytics environment...");
 
             // Update all remaining steps
             updateStepProgress(10, 'active');
@@ -1051,7 +1049,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
 
             // Show completion message with summary
             const summary = generateSetupSummary();
-            addAIMessage(`🎉 Your AML analysis is now ready! I've configured a comprehensive patient journey analysis with the following specifications:\n\n${summary}\n\nYou can now access detailed insights from the main dashboard.`);
+            addAIMessage(`🎉 Your HER2+ Breast Cancer analysis is now ready! I've configured a comprehensive patient journey analysis with the following specifications:\n\n${summary}\n\nYou can now access detailed insights from the main dashboard.`);
 
             // Update landing page status
             updateLandingPageStatus('completed');
@@ -1062,8 +1060,8 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
 
         function generateSetupSummary() {
             const steps = [
-                `• Treatment Setting Focus: ${conversationData.step1 || 'Newly diagnosed AML'}`,
-                `• Cytogenetic Focus: ${conversationData.step2 || 'All risk categories'}`,
+                `• Treatment Setting Focus: ${conversationData.step1 || 'Early-stage HER2+ breast cancer'}`,
+                `• Hormone Receptor Focus: ${conversationData.step2 || 'All HER2+ regardless of HR status'}`,
                 `• Patient Segmentation: ${conversationData.step3 || 'All patients'}`,
                 `• Claims Databases: ${conversationData.step4 || 'Commercial claims'}`,
                 `• Market Basket: ${conversationData.step5 || 'Standard analysis'}`,
@@ -1084,7 +1082,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
             buttonDiv.innerHTML = `
                 <button onclick="goToAnalysis()" class="bg-teal-500 hover:bg-teal-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
                     <i class="fas fa-chart-line mr-2"></i>
-                    View AML Analysis Dashboard
+                    View HER2+ Breast Cancer Analysis Dashboard
                 </button>
             `;
 
@@ -1093,14 +1091,14 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
         }
 
         function updateLandingPageStatus(status) {
-            localStorage.setItem('amlStatus', status);
+            localStorage.setItem('her2BreastCancerStatus', status);
         }
 
         function goToAnalysis() {
             // Navigate to indication analysis page
-            sessionStorage.setItem('selectedIndication', 'aml');
-            sessionStorage.setItem('indicationDisplayName', 'AML');
-            window.location.href = 'indication-analysis.html?indication=aml';
+            sessionStorage.setItem('selectedIndication', 'breast-cancer');
+            sessionStorage.setItem('indicationDisplayName', 'HER2+ Breast Cancer');
+            window.location.href = 'indication-analysis.html?indication=breast-cancer';
         }
 
         function goBack() {
