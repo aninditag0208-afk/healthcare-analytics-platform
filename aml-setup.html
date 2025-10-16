@@ -515,6 +515,8 @@
                         try {
                             // Get relevant knowledge from Patient Journey Rules
                             const knowledgeContext = window.PatientJourneyKnowledge?.generateLLMContext('aml', userMessage) || '';
+                            console.log('AML Knowledge Context Length:', knowledgeContext.length);
+                            console.log('Knowledge Context Preview:', knowledgeContext.substring(0, 200));
 
                             const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
                                 method: 'POST',
@@ -524,19 +526,26 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `You are an AI assistant helping configure AML patient journey analysis from claims data using validated clinical rules.
+                                            text: `You are an AI assistant helping configure AML patient journey analysis from claims data using validated Patient Journey Rules document.
 
-Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing. Claims data includes medical claims (procedures, visits) and pharmacy claims (prescriptions).
+IMPORTANT: Always reference specific information from the Patient Journey Rules document provided below when responding.
 
-AML Treatment Context: AML patient journey includes multiple phases - Induction (initial intensive treatment ≥90 days), Consolidation (post-remission, ~6 cycles/24 weeks), Maintenance (long-term prevention with ONUREG or 24 weeks post-consolidation), Refractory (non-responsive within 60 days), and Relapse (recurrence after >180 days or with salvage drugs like Gilteritinib, Sorafenib, Fludarabine, Enasidenib, Ivosidenib).
+Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing.
 
+VALIDATED PATIENT JOURNEY RULES FOR AML:
 ${knowledgeContext}
 
-Current Context: ${context}
+AML-Specific Rules from Document:
+- Patient Funnel: Rule 1: AML patients with ≥1 primary diagnosis, Rule 2: Minimum 2 diagnoses ≥15 days apart OR 1 diagnosis + 1 AML treatment
+- Treatment Phases: Induction (≥90 days) → Consolidation (~24 weeks) → Maintenance (ONUREG within 90 days) → Refractory (switch within 60 days) → Relapse (>180 days gap)
+- Salvage Drugs: Gilteritinib, Sorafenib, Fludarabine, Enasidenib, Ivosidenib, Gemtuzumab Ozogamicin, Midostaurin
+- Key Transitions: Induction to Consolidation (>60 days gap + ≥90 days induction), Consolidation to Maintenance (168 days from start), Any to Relapse (>180 days OR salvage drugs)
+
+Current Step Context: ${context}
 
 User message: ${userMessage}
 
-Respond based on the validated Patient Journey Rules above. Be concise, healthcare-focused, acknowledge their input using the clinical knowledge, and help progress to the next AML analysis configuration step. Reference specific rules or drug classifications when relevant.`
+RESPOND USING THE PATIENT JOURNEY RULES: Acknowledge their input and provide guidance based on the specific AML rules above. When relevant, mention "According to the Patient Journey Rules" and reference specific rules, drug lists, or transition criteria. Help progress to the next AML analysis configuration step with clinically accurate information.`
                                         }]
                                     }],
                                     generationConfig: {
@@ -637,7 +646,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                 if (geminiAPI && currentStep <= 9) {
                     try {
                         const stepContext = getStepContext(currentStep);
-                        const context = `Current step ${currentStep}: ${stepContext}. User provided: "${message}". Acknowledge their input and progress to the next NSCLC analysis configuration step.`;
+                        const context = `Current step ${currentStep}: ${stepContext}. User provided: "${message}". Acknowledge their input and progress to the next AML analysis configuration step.`;
 
                         showTypingIndicator();
                         aiResponse = await geminiAPI.generateResponse(message, context);
@@ -646,14 +655,14 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                     } catch (geminiError) {
                         console.error('Gemini API error:', geminiError);
                         hideTypingIndicator();
-                        addAIMessage(`Great! I've noted your preferences: "${message}". Let's continue with the next aspect of your NSCLC analysis.`);
+                        addAIMessage(`Great! I've noted your preferences: "${message}". Let's continue with the next aspect of your AML analysis.`);
                     }
                 } else {
                     // Fallback to simple acknowledgment
                     showTypingIndicator();
                     await new Promise(resolve => setTimeout(resolve, 1500));
                     hideTypingIndicator();
-                    addAIMessage(`Great! I've noted your preferences: "${message}". Let's continue with the next aspect of your NSCLC analysis.`);
+                    addAIMessage(`Great! I've noted your preferences: "${message}". Let's continue with the next aspect of your AML analysis.`);
                 }
 
                 // Progress to next step after AI acknowledgment
@@ -707,7 +716,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
 
             let aiResponse;
             if (geminiAPI) {
-                const context = `Current step: ${currentStep}. Expected responses relate to: ${conversationFlow[currentStep]?.suggestions?.join(', ') || 'NSCLC analysis configuration'}`;
+                const context = `Current step: ${currentStep}. Expected responses relate to: ${conversationFlow[currentStep]?.suggestions?.join(', ') || 'AML analysis configuration'}`;
                 aiResponse = await geminiAPI.generateResponse(message, context);
             } else {
                 aiResponse = generateContextualFallback(message);
@@ -781,7 +790,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                             await completeSetup();
                         } catch (error) {
                             console.error('Error in fallback completion:', error);
-                            addAIMessage("🎉 Your NSCLC analysis setup is complete! You can now proceed to the analysis dashboard.");
+                            addAIMessage("🎉 Your AML analysis setup is complete! You can now proceed to the analysis dashboard.");
                             updateLandingPageStatus('completed');
                             showCompletionButton();
                         }
@@ -794,7 +803,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                     } catch (error) {
                         console.error('Error in completeSetup from progressToNextStep:', error);
                         // Fallback completion
-                        addAIMessage("🎉 Your NSCLC analysis setup is complete! You can now proceed to the analysis dashboard.");
+                        addAIMessage("🎉 Your AML analysis setup is complete! You can now proceed to the analysis dashboard.");
                         updateLandingPageStatus('completed');
                         showCompletionButton();
                     }

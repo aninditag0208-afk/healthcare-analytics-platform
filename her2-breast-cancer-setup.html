@@ -513,6 +513,8 @@
                         try {
                             // Get relevant knowledge from Patient Journey Rules
                             const knowledgeContext = window.PatientJourneyKnowledge?.generateLLMContext('her2_breast_cancer', userMessage) || '';
+                            console.log('HER2+ Knowledge Context Length:', knowledgeContext.length);
+                            console.log('Knowledge Context Preview:', knowledgeContext.substring(0, 200));
 
                             const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
                                 method: 'POST',
@@ -522,19 +524,27 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `You are an AI assistant helping configure HER2+ Breast Cancer patient journey analysis from claims data using validated clinical rules.
+                                            text: `You are an AI assistant helping configure HER2+ Breast Cancer patient journey analysis from claims data using validated Patient Journey Rules document.
 
-Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing. Claims data includes medical claims (procedures, visits) and pharmacy claims (prescriptions).
+IMPORTANT: Always reference specific information from the Patient Journey Rules document provided below when responding.
 
-HER2+ Breast Cancer Treatment Context: HER2+ Breast Cancer patient journey includes multiple treatment settings - Early-stage (neoadjuvant/adjuvant), Metastatic treatment. Key HER2+ backbone drugs include Trastuzumab (Herceptin), Perjeta, Kadcyla, Tykerb, Enhertu, Nerlynx, Phesgo, Tukysa, Margenza. Line progression rules consider movement between HER2+ drugs, addition of chemotherapy or hormone therapy, and specific duration thresholds (90-180 days).
+Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing.
 
+VALIDATED PATIENT JOURNEY RULES FOR HER2+ BREAST CANCER:
 ${knowledgeContext}
 
-Current Context: ${context}
+HER2+ Breast Cancer-Specific Rules from Document:
+- Patient Funnel: Rule 1: Breast cancer patients via ICD codes, Rule 2: ≥2 diagnoses ≥15 days apart, Rule 3: 1-year lookback, Rule 7: HER2+ via backbone drug utilization
+- HER2+ Backbone Drugs: Trastuzumab (Herceptin), Perjeta, Kadcyla, Tykerb, Enhertu, Nerlynx, Phesgo, Tukysa, Margenza
+- Line Progression Rules: Rule 1: HER2+ drug switches = progression (except Perjeta+Herceptin), Rule 3: Within chemo/targeted = progression if ≥90 days, Rule 4: AI to CDK progression, Rule 5: Switch to HER2+ = progression if >90 days
+- Episode Creation: Continuous drug usage within Grace window, derived from refill patterns
+- Drug Classifications: HER2+ backbone, Chemotherapy (platin/taxane-based), Hormonal therapy (AI/CDK inhibitors), Targeted therapy
+
+Current Step Context: ${context}
 
 User message: ${userMessage}
 
-Respond based on the validated Patient Journey Rules above. Be concise, healthcare-focused, acknowledge their input using the clinical knowledge, and help progress to the next HER2+ Breast Cancer analysis configuration step. Reference specific HER2+ drugs, progression rules, or treatment phases when relevant.`
+RESPOND USING THE PATIENT JOURNEY RULES: Acknowledge their input and provide guidance based on the specific HER2+ Breast Cancer rules above. When relevant, mention "According to the Patient Journey Rules" and reference specific HER2+ drugs, progression thresholds (90-180 days), or line advancement rules. Help progress to the next HER2+ Breast Cancer analysis configuration step with clinically accurate information.`
                                         }]
                                     }],
                                     generationConfig: {
