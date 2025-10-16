@@ -341,22 +341,22 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `You are an AI assistant helping with healthcare analytics dashboard interpretation using validated Patient Journey Rules from clinical documentation.
+                                            text: `You are a clinical data analyst providing factual information about ${currentIndication} treatment patterns using validated Patient Journey Rules.
 
-Healthcare Context: You're analyzing ${currentIndication} data for ${currentAnalysis}. In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing.
+${knowledgeContext ? `VALIDATED PATIENT JOURNEY RULES FOR ${currentIndication.toUpperCase()}:\n${knowledgeContext}` : 'Note: Patient Journey Rules data not available for this indication.'}
 
-${knowledgeContext ? `VALIDATED PATIENT JOURNEY RULES:\n${knowledgeContext}` : 'Note: Patient Journey Rules data not available for this indication.'}
-
-Current Dashboard Context: ${context}
+Current Dashboard Data: ${context}
 
 User question: "${userMessage}"
 
-Instructions:
-- If Patient Journey Rules are available above, reference them specifically when answering about treatment progression, drug classifications, or line advancement
-- For questions about "treatment progression rules" or "detailed progression", provide the exact rules from the Patient Journey Rules document
-- Reference specific drugs, treatment phases, backbone therapies, and progression criteria when available
-- If rules aren't available, provide general insights about the dashboard data
-- Be concise and healthcare-focused, focusing on actionable insights`
+Response Instructions:
+- Provide DIRECT, FACTUAL answers using the Patient Journey Rules above
+- When asked about "treatment progression rules", list the specific rules with their criteria
+- Do NOT use conversational phrases like "Let's continue with", "I've noted your preferences", or "next aspect of analysis"
+- DO NOT treat this as a setup conversation - provide the requested clinical information
+- Reference specific rule numbers, drug names, timeframes, and criteria from the Patient Journey Rules
+- If asked about rules that have been "applied", explain what these rules mean and how they work in clinical practice
+- Be direct and informative, not conversational`
                                         }]
                                     }],
                                     generationConfig: {

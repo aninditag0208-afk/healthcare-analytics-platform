@@ -393,41 +393,101 @@
         // Follow-up questions for specific responses
         const followUpQuestions = {
             "comorbidities": {
-                question: "Which specific comorbidities are most critical for your AML analysis?",
+                question: "Which specific comorbidities are most critical for your HER2+ Breast Cancer analysis?",
                 suggestions: [
-                    "Infection susceptibility and complications",
-                    "Cardiovascular conditions (heart failure, arrhythmias)",
+                    "Cardiovascular conditions (cardiomyopathy, heart failure)",
                     "Diabetes and metabolic disorders",
                     "Renal and hepatic impairment",
+                    "Pulmonary complications (pneumonitis)",
                     "All major comorbidity categories"
                 ]
             },
             "adverse_events": {
                 question: "Which adverse events should we prioritize in the market basket?",
                 suggestions: [
-                    "Febrile neutropenia and infections",
-                    "Hematologic toxicities (cytopenias)",
-                    "Cardiac toxicities (anthracycline-related)",
-                    "Tumor lysis syndrome",
-                    "Differentiation syndrome",
+                    "Cardiotoxicity (trastuzumab-related)",
+                    "Infusion reactions and hypersensitivity",
+                    "Neuropathy (taxane-related)",
+                    "Neutropenia and infections",
+                    "Diarrhea and GI toxicities",
                     "All grade 3+ adverse events"
                 ]
             },
             "backbone_therapy": {
-                question: "Which treatment approach considerations are most important for line progression?",
+                question: "Which HER2+ treatment considerations are most important for line progression?",
                 suggestions: [
-                    "Anthracycline sensitivity/resistance status",
-                    "Prior hypomethylating agent exposure",
-                    "FLT3 inhibitor resistance mechanisms",
-                    "Performance status changes",
-                    "Molecular marker-driven treatment selection",
-                    "Transplant candidacy assessment"
+                    "HER2+ backbone drug resistance patterns",
+                    "Hormone receptor status implications",
+                    "CDK4/6 inhibitor combination considerations",
+                    "Brain metastases treatment considerations",
+                    "Performance status and cardiac function",
+                    "Prior trastuzumab exposure duration"
+                ]
+            },
+            "custom_step_1": {
+                question: "What specific HER2+ Breast Cancer setting should we focus on for your custom analysis?",
+                suggestions: [
+                    "Early-stage adjuvant therapy (post-surgery)",
+                    "Neoadjuvant therapy (pre-surgery)",
+                    "Metastatic HER2+ with brain metastases",
+                    "HR+/HER2+ dual-positive patients",
+                    "Treatment-resistant or refractory HER2+"
+                ]
+            },
+            "custom_step_2": {
+                question: "What specific hormone receptor characteristics should we use for custom filtering?",
+                suggestions: [
+                    "HR-positive/HER2+ dual-positive only",
+                    "HR-negative/HER2+ pure patients",
+                    "PIK3CA mutation status",
+                    "PD-L1 expression levels",
+                    "Germline BRCA mutation carriers"
+                ]
+            },
+            "custom_step_3": {
+                question: "What specific patient filtering criteria would you like to apply?",
+                suggestions: [
+                    "Exclude patients with prior breast cancer",
+                    "Include only patients with specific cardiac function",
+                    "Filter by menopausal status",
+                    "Include only de novo metastatic patients",
+                    "Exclude patients with brain metastases"
+                ]
+            },
+            "custom_step_4": {
+                question: "What specific market basket criteria should we include for HER2+ analysis?",
+                suggestions: [
+                    "Focus on cardiotoxicity monitoring procedures",
+                    "Include surgical procedures and reconstruction",
+                    "Track fertility preservation interventions",
+                    "Monitor for CNS imaging and interventions",
+                    "Include supportive care for neuropathy"
+                ]
+            },
+            "custom_step_5": {
+                question: "What specific progression logic should we apply for HER2+ treatment lines?",
+                suggestions: [
+                    "HER2+ backbone drug sequence requirements",
+                    "Brain metastases-specific progression criteria",
+                    "Hormone therapy resistance patterns",
+                    "CDK4/6 inhibitor progression considerations",
+                    "Surgery-based line transitions"
+                ]
+            },
+            "custom_step_6": {
+                question: "What specific analytics outputs would be most valuable for your HER2+ research?",
+                suggestions: [
+                    "HER2+ backbone drug effectiveness patterns",
+                    "Cardiac safety monitoring outcomes",
+                    "Brain metastases treatment patterns",
+                    "HR+/HER2+ combination therapy analysis",
+                    "Real-world progression-free survival"
                 ]
             }
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('NSCLC Conversational Setup loaded');
+            console.log('HER2+ Breast Cancer Conversational Setup loaded');
 
             // Auto-resize textarea
             const messageInput = document.getElementById('messageInput');
@@ -935,6 +995,12 @@ RESPOND USING THE PATIENT JOURNEY RULES: Acknowledge their input and provide gui
 
         async function checkForFollowUp(message) {
             const lowerMessage = message.toLowerCase();
+
+            // Check for custom criteria selections across all steps
+            if (lowerMessage.includes('custom')) {
+                await handleFollowUpQuestion(`custom_step_${currentStep}`);
+                return true;
+            }
 
             // Check if this is step 3 (market basket) and needs comorbidity/AE follow-up
             if (currentStep === 3) {

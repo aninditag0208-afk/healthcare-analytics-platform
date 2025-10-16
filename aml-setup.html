@@ -425,11 +425,71 @@
                     "Molecular marker-driven treatment selection",
                     "Transplant candidacy assessment"
                 ]
+            },
+            "custom_step_1": {
+                question: "What specific AML stage or treatment setting should we focus on for your custom analysis?",
+                suggestions: [
+                    "Newly diagnosed elderly patients (>65 years)",
+                    "Relapsed/refractory with specific mutations",
+                    "Post-transplant maintenance therapy",
+                    "Secondary AML from MDS progression",
+                    "Pediatric AML populations"
+                ]
+            },
+            "custom_step_2": {
+                question: "What specific biomarker or patient characteristics should we use for custom population filtering?",
+                suggestions: [
+                    "FLT3-ITD mutation status",
+                    "NPM1 mutation without FLT3-ITD",
+                    "TP53 mutation carriers",
+                    "Cytogenetic risk stratification",
+                    "Measurable residual disease (MRD) status"
+                ]
+            },
+            "custom_step_3": {
+                question: "What specific patient filtering criteria would you like to apply?",
+                suggestions: [
+                    "Exclude patients with prior hematologic malignancies",
+                    "Include only patients with specific ECOG performance status",
+                    "Filter by specific age ranges (e.g., 18-65 years)",
+                    "Include only treatment-naive patients",
+                    "Exclude patients with secondary AML"
+                ]
+            },
+            "custom_step_4": {
+                question: "What specific market basket criteria should we include in your custom analysis?",
+                suggestions: [
+                    "Focus on infection-related hospitalizations",
+                    "Include only chemotherapy-related toxicities",
+                    "Track transfusion requirements and supportive care",
+                    "Monitor for differentiation syndrome specifically",
+                    "Include bone marrow biopsy and diagnostic procedures"
+                ]
+            },
+            "custom_step_5": {
+                question: "What specific progression logic or criteria should we apply for your custom AML analysis?",
+                suggestions: [
+                    "Use molecular relapse markers (MRD positivity)",
+                    "Define progression based on blast count increases",
+                    "Include specific mutation acquisition patterns",
+                    "Use transplant-specific progression criteria",
+                    "Apply protocol-specific response criteria"
+                ]
+            },
+            "custom_step_6": {
+                question: "What specific analytics outputs would be most valuable for your custom research?",
+                suggestions: [
+                    "Molecular biomarker progression patterns",
+                    "Real-world overall survival analysis",
+                    "Time to next treatment stratified by mutation",
+                    "Healthcare resource utilization by treatment phase",
+                    "Treatment sequence optimization analysis"
+                ]
             }
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('NSCLC Conversational Setup loaded');
+            console.log('AML Conversational Setup loaded');
 
             // Auto-resize textarea
             const messageInput = document.getElementById('messageInput');
@@ -937,6 +997,12 @@ RESPOND USING THE PATIENT JOURNEY RULES: Acknowledge their input and provide gui
         async function checkForFollowUp(message) {
             const lowerMessage = message.toLowerCase();
 
+            // Check for custom criteria selections across all steps
+            if (lowerMessage.includes('custom')) {
+                await handleFollowUpQuestion(`custom_step_${currentStep}`);
+                return true;
+            }
+
             // Check if this is step 3 (market basket) and needs comorbidity/AE follow-up
             if (currentStep === 3) {
                 if (lowerMessage.includes('comorbidities') || lowerMessage.includes('both')) {
@@ -948,8 +1014,8 @@ RESPOND USING THE PATIENT JOURNEY RULES: Acknowledge their input and provide gui
                 }
             }
 
-            // Check if this is step 6 (journey progression) and needs backbone follow-up
-            if (currentStep === 6) {
+            // Check if this is step 5 (journey progression) and needs backbone follow-up
+            if (currentStep === 5) {
                 if (lowerMessage.includes('backbone') || lowerMessage.includes('platinum') || lowerMessage.includes('immunotherapy')) {
                     await handleFollowUpQuestion('backbone_therapy');
                     return true;

@@ -127,6 +127,16 @@ window.PatientJourneyKnowledge = {
             "Ivosidenib", "Gemtuzumab Ozogamicin", "Midostaurin"
         ],
 
+        lot_progression_rules: [
+            "Rule 1: Induction to Consolidation - Gap >60 days + Previous induction therapy ≥90 days duration",
+            "Rule 2: Consolidation to Maintenance - 168 days (24 weeks) from consolidation start, typically ONUREG within 90 days of consolidation completion",
+            "Rule 3: Progression to Relapse - Gap >180 days between treatments OR use of salvage drugs OR 2 consecutive relapse diagnoses",
+            "Rule 4: First to Second Relapse - Gap >90 days + initiation of new treatment regimen",
+            "Rule 5: Refractory Treatment - Switch to different therapy within 60 days due to lack of response",
+            "Rule 6: Salvage Therapy Usage - Use of gilteritinib, sorafenib, fludarabine, enasidenib, ivosidenib, gemtuzumab ozogamicin, or midostaurin indicates advanced disease progression",
+            "Rule 7: Stem Cell Transplant - Can occur during consolidation or refractory phases and may influence subsequent line classification"
+        ],
+
         key_transitions: {
             "induction_to_consolidation": "Gap >60 days + Induction ≥90 days",
             "consolidation_to_maintenance": "168 days (24 weeks) from consolidation start",
@@ -193,7 +203,23 @@ window.PatientJourneyKnowledge = {
                 context += `Line of Therapy Progression Rules:\n${knowledge.lot_progression_rules.join('\n')}\n\n`;
             }
             if (knowledge.treatment_phases) {
-                context += `Treatment Phases:\n${JSON.stringify(knowledge.treatment_phases, null, 2)}\n\n`;
+                context += `Treatment Phases:\n`;
+                for (const [phase, details] of Object.entries(knowledge.treatment_phases)) {
+                    context += `- ${phase.toUpperCase()}: ${details.description}`;
+                    if (details.duration) context += ` (Duration: ${details.duration})`;
+                    if (details.criteria && Array.isArray(details.criteria)) {
+                        context += ` - Criteria: ${details.criteria.join(', ')}`;
+                    }
+                    context += '\n';
+                }
+                context += '\n';
+            }
+            if (knowledge.key_transitions) {
+                context += `Key Phase Transitions:\n`;
+                for (const [transition, criteria] of Object.entries(knowledge.key_transitions)) {
+                    context += `- ${transition.replace(/_/g, ' ').toUpperCase()}: ${criteria}\n`;
+                }
+                context += '\n';
             }
         }
 
