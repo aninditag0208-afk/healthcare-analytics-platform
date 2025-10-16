@@ -154,31 +154,6 @@
             </div>
         </div>
 
-        <!-- Search Input -->
-        <div class="relative w-full max-w-2xl">
-            <input
-                type="text"
-                placeholder="What would you like to analyze..."
-                class="search-input w-full rounded-full px-6 py-4 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 text-lg"
-                id="analysisInput"
-            >
-            <div class="absolute right-2 top-2 flex items-center space-x-2">
-                <button class="text-gray-400 hover:text-gray-600 p-2">
-                    <i class="fas fa-paperclip"></i>
-                    <span class="text-sm ml-1">Attach</span>
-                </button>
-                <button class="text-gray-400 hover:text-gray-600 p-2">
-                    <i class="fas fa-search"></i>
-                    <span class="text-sm ml-1">Search</span>
-                </button>
-                <button
-                    class="bg-teal-500 hover:bg-teal-600 text-white rounded-full p-2 transition-colors"
-                    onclick="startAnalysis()"
-                >
-                    <i class="fas fa-play"></i>
-                </button>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -219,23 +194,6 @@
             window.location.href = `indication-analysis.html?indication=${indication}`;
         }
 
-        function startAnalysis() {
-            const query = document.getElementById('analysisInput').value;
-            if (query.trim()) {
-                alert(`Starting analysis for: "${query}"`);
-                // Add your analysis logic here
-                console.log(`Analysis query: ${query}`);
-            } else {
-                alert('Please enter a query to analyze');
-            }
-        }
-
-        // Add enter key support for search
-        document.getElementById('analysisInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                startAnalysis();
-            }
-        });
 
         function handleNSCLCClick() {
             const status = getNSCLCStatus();
