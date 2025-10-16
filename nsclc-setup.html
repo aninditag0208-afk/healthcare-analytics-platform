@@ -6,6 +6,10 @@
     <title>NSCLC Analysis Setup - Healthcare Analytics Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="analytics-state.js"></script>
+    <script>
+        // Expose Vercel environment variable for Gemini API
+        window.GEMINI_API_KEY = '${process.env.GEMINI_API_KEY || ''}';
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .gradient-bg {
@@ -318,6 +322,9 @@
         let currentStep = 1;
         let conversationData = {};
         let isProcessing = false;
+        let isInFollowUp = false;
+        let geminiAPI = null;
+        let hasCompletedSteps = new Set();
 
         // Conversation flow and AI responses
         const conversationFlow = {
@@ -435,9 +442,76 @@
             messageInput.addEventListener('input', autoResizeTextarea);
             messageInput.addEventListener('keydown', handleKeyDown);
 
+            // Initialize Gemini API
+            initializeGeminiAPI();
+
             // Update landing page status
             updateLandingPageStatus('in-progress');
+
+            // Mark step 1 as active initially
+            updateStepProgress(1, 'active');
         });
+
+        function initializeGeminiAPI() {
+            // Try to get API key from environment variables exposed by Vercel
+            const apiKey = process?.env?.GEMINI_API_KEY || window.GEMINI_API_KEY || null;
+
+            if (apiKey) {
+                geminiAPI = {
+                    apiKey: apiKey,
+                    apiUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+
+                    async generateResponse(userMessage, context = '') {
+                        try {
+                            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    contents: [{
+                                        parts: [{
+                                            text: `You are an AI assistant helping configure NSCLC patient journey analysis from claims data. Context: ${context}\n\nUser message: ${userMessage}\n\nRespond appropriately to help guide the conversation forward. Be concise and healthcare-focused.`
+                                        }]
+                                    }],
+                                    generationConfig: {
+                                        temperature: 0.7,
+                                        maxOutputTokens: 200,
+                                    }
+                                })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('API request failed');
+                            }
+
+                            const data = await response.json();
+                            return data.candidates[0].content.parts[0].text;
+                        } catch (error) {
+                            console.warn('Gemini API error:', error);
+                            return this.getFallbackResponse(userMessage);
+                        }
+                    },
+
+                    getFallbackResponse(userMessage) {
+                        const lowerMessage = userMessage.toLowerCase();
+
+                        if (lowerMessage.includes('help') || lowerMessage.includes('confused')) {
+                            return "I understand this might be complex. Let me help you choose the best option for your NSCLC analysis. Would you like me to explain any of these choices in more detail?";
+                        } else if (lowerMessage.includes('different') || lowerMessage.includes('other')) {
+                            return "I can help you with a custom configuration. Could you tell me more specifically what you're looking for in your NSCLC patient journey analysis?";
+                        } else if (lowerMessage.includes('not sure') || lowerMessage.includes('unsure')) {
+                            return "No problem! For most NSCLC studies, I'd recommend starting with the suggested options. We can always refine this later. Which option seems most relevant to your research goals?";
+                        } else {
+                            return "Thank you for that input. Let me process this and move us to the next step of configuring your analysis.";
+                        }
+                    }
+                };
+                console.log('Gemini API initialized');
+            } else {
+                console.log('No Gemini API key found, using fallback responses');
+            }
+        }
 
         function autoResizeTextarea() {
             const textarea = document.getElementById('messageInput');
@@ -480,51 +554,163 @@
             messageInput.value = '';
             messageInput.style.height = 'auto';
 
-            // Store conversation data
-            conversationData[`step${currentStep}`] = message;
-
-            // Check for follow-up questions
-            const needsFollowUp = await checkForFollowUp(message);
-
-            if (needsFollowUp) {
-                // Handle follow-up without progressing to next step
-                conversationData[`step${currentStep}_followup`] = message;
-                return;
-            }
-
-            // Update progress
-            updateStepProgress(currentStep, 'completed');
-            updateOverallProgress((currentStep / 8) * 100);
-
             // Hide suggestions
             hideSuggestions();
 
-            // Show typing indicator
+            try {
+                // Check if this is a follow-up question response
+                if (isInFollowUp) {
+                    await handleFollowUpResponse(message);
+                    return;
+                }
+
+                // Store conversation data for current step
+                conversationData[`step${currentStep}`] = message;
+
+                // Check if message matches expected patterns or needs AI interpretation
+                const isStandardResponse = await validateStandardResponse(message);
+
+                if (!isStandardResponse) {
+                    await handleUnexpectedResponse(message);
+                    return;
+                }
+
+                // Check for follow-up questions
+                const needsFollowUp = await checkForFollowUp(message);
+
+                if (needsFollowUp) {
+                    // Handle follow-up without progressing to next step
+                    conversationData[`step${currentStep}_followup`] = message;
+                    return;
+                }
+
+                // Mark current step as completed
+                hasCompletedSteps.add(currentStep);
+                updateStepProgress(currentStep, 'completed');
+                updateOverallProgress((hasCompletedSteps.size / 8) * 100);
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                // Simulate AI processing time
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                hideTypingIndicator();
+
+                // Move to next step
+                currentStep++;
+
+                if (currentStep <= 7) {
+                    // Continue conversation
+                    const nextFlow = conversationFlow[currentStep];
+                    addAIMessage(nextFlow.question);
+                    showSuggestions(nextFlow.suggestions);
+                    updateStepProgress(currentStep, 'active');
+                } else {
+                    // Complete setup
+                    await completeSetup();
+                }
+            } catch (error) {
+                console.error('Error in sendMessage:', error);
+                hideTypingIndicator();
+                addAIMessage('I apologize, but I encountered an error. Let me help you continue with the setup. Could you please try again or select one of the suggested options?');
+
+                // Show suggestions for current step
+                if (currentStep <= 7) {
+                    const currentFlow = conversationFlow[currentStep];
+                    if (currentFlow) {
+                        showSuggestions(currentFlow.suggestions);
+                    }
+                }
+            } finally {
+                // Re-enable send button
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                isProcessing = false;
+            }
+        }
+
+        async function validateStandardResponse(message) {
+            const currentFlow = conversationFlow[currentStep];
+            if (!currentFlow) return true;
+
+            // Check if message closely matches any suggestion
+            const lowerMessage = message.toLowerCase();
+            const suggestions = currentFlow.suggestions.map(s => s.toLowerCase());
+
+            return suggestions.some(suggestion =>
+                lowerMessage.includes(suggestion.substring(0, Math.min(10, suggestion.length))) ||
+                suggestion.includes(lowerMessage.substring(0, Math.min(10, lowerMessage.length)))
+            );
+        }
+
+        async function handleUnexpectedResponse(message) {
             showTypingIndicator();
 
-            // Simulate AI processing time
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            let aiResponse;
+            if (geminiAPI) {
+                const context = `Current step: ${currentStep}. Expected responses relate to: ${conversationFlow[currentStep]?.suggestions?.join(', ') || 'NSCLC analysis configuration'}`;
+                aiResponse = await geminiAPI.generateResponse(message, context);
+            } else {
+                aiResponse = generateContextualFallback(message);
+            }
 
             hideTypingIndicator();
+            addAIMessage(aiResponse);
 
-            // Move to next step
+            // Show original suggestions again
+            const currentFlow = conversationFlow[currentStep];
+            if (currentFlow) {
+                showSuggestions(currentFlow.suggestions);
+            }
+        }
+
+        function generateContextualFallback(message) {
+            const lowerMessage = message.toLowerCase();
+            const stepContext = {
+                1: "research objectives and analysis goals",
+                2: "patient population criteria",
+                3: "claims database selection",
+                4: "market basket configuration",
+                5: "patient cohort definitions",
+                6: "episode and regimen creation",
+                7: "journey progression logic"
+            };
+
+            if (lowerMessage.includes('help') || lowerMessage.includes('explain')) {
+                return `I understand you'd like more information about ${stepContext[currentStep] || 'this configuration step'}. Let me help clarify the options above. Each choice will affect how we analyze your NSCLC patient data. Which aspect would you like me to explain further?`;
+            } else if (lowerMessage.includes('custom') || lowerMessage.includes('different')) {
+                return `I see you're looking for a custom approach to ${stepContext[currentStep] || 'this step'}. While I can accommodate specific needs, could you select the closest option from above and we can refine it in the next steps?`;
+            } else {
+                return `Thank you for that input about ${stepContext[currentStep] || 'your analysis needs'}. To keep our configuration on track, could you please select one of the suggested options above? This helps ensure we set up your NSCLC analysis correctly.`;
+            }
+        }
+
+        async function handleFollowUpResponse(message) {
+            conversationData[`step${currentStep}_followup_response`] = message;
+            isInFollowUp = false;
+
+            showTypingIndicator();
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            hideTypingIndicator();
+
+            addAIMessage("Perfect! I've captured those details. Now let's continue with the next aspect of your analysis setup.");
+
+            // Continue with normal flow
+            hasCompletedSteps.add(currentStep);
+            updateStepProgress(currentStep, 'completed');
+            updateOverallProgress((hasCompletedSteps.size / 8) * 100);
+
             currentStep++;
 
             if (currentStep <= 7) {
-                // Continue conversation
                 const nextFlow = conversationFlow[currentStep];
                 addAIMessage(nextFlow.question);
                 showSuggestions(nextFlow.suggestions);
                 updateStepProgress(currentStep, 'active');
             } else {
-                // Complete setup
                 await completeSetup();
             }
-
-            // Re-enable send button
-            sendButton.disabled = false;
-            sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
-            isProcessing = false;
         }
 
         function addUserMessage(message) {
@@ -705,9 +891,6 @@
         }
 
         async function handleFollowUpQuestion(type) {
-            // Hide suggestions
-            hideSuggestions();
-
             // Show typing indicator
             showTypingIndicator();
 
@@ -720,6 +903,9 @@
             const followUp = followUpQuestions[type];
             addAIMessage(followUp.question);
             showSuggestions(followUp.suggestions);
+
+            // Set follow-up mode
+            isInFollowUp = true;
 
             // Re-enable send button
             const sendButton = document.getElementById('sendButton');

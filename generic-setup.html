@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Indication Setup - Healthcare Analytics Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="analytics-state.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%);
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .chat-bubble.ai {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-bubble.user {
+            background: linear-gradient(135deg, #2dd4bf 0%, #0d4f4f 100%);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .typing-indicator {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .chat-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #2dd4bf;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.1);
+        }
+
+        .progress-sidebar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-step {
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background: rgba(45, 212, 191, 0.2);
+            border-color: #2dd4bf;
+        }
+
+        .progress-step.completed {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+
+        .suggested-response {
+            background: rgba(45, 212, 191, 0.1);
+            border: 1px solid rgba(45, 212, 191, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .suggested-response:hover {
+            background: rgba(45, 212, 191, 0.2);
+            border-color: #2dd4bf;
+        }
+    </style>
+</head>
+<body class="h-screen gradient-bg flex">
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-white/10">
+            <div class="flex items-center">
+                <button class="text-white/80 hover:text-white mr-4" onclick="goBack()">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <div class="w-8 h-8 bg-white rounded flex items-center justify-center mr-3">
+                    <span class="text-gray-800 text-sm font-bold">ZS</span>
+                </div>
+                <div>
+                    <h1 class="text-white text-lg font-medium">New Indication Setup</h1>
+                    <p class="text-white/60 text-sm">Configure patient journey analysis for any indication</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="text-white/80 hover:text-white text-xl">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <div class="w-8 h-8 bg-white/20 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="flex-1 overflow-y-auto p-6" id="chatMessages">
+            <!-- Initial AI Message -->
+            <div class="flex items-start space-x-4 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-4 text-white">
+                    <div class="flex items-center mb-2">
+                        <span class="font-medium">AI Research Assistant</span>
+                        <span class="text-xs text-white/60 ml-2">Just now</span>
+                    </div>
+                    <p class="mb-3">Hello! I'm here to help you set up a patient journey analysis using real-world claims data for any therapeutic indication.</p>
+                    <p>Let's start by identifying which indication you'd like to analyze. What therapeutic area or specific condition interests you?</p>
+                </div>
+            </div>
+
+            <!-- Suggested Response Buttons -->
+            <div class="flex flex-wrap gap-3 mb-6 ml-14" id="suggestedResponses">
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Oncology (specify cancer type)
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Immunology (RA, psoriasis, IBD)
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Cardiology (heart failure, CAD)
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Neurology (MS, Alzheimer's, epilepsy)
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Rare diseases
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="border-t border-white/10 p-6">
+            <div class="flex items-end space-x-4">
+                <div class="flex-1">
+                    <div class="relative">
+                        <textarea
+                            id="messageInput"
+                            class="chat-input w-full rounded-lg px-4 py-3 text-white placeholder-white/60 resize-none"
+                            placeholder="Type the indication you'd like to analyze..."
+                            rows="1"
+                            style="min-height: 44px; max-height: 120px;"
+                        ></textarea>
+                    </div>
+                    <div class="text-xs text-white/40 mt-1">
+                        Press Shift + Enter for new line, Enter to send
+                    </div>
+                </div>
+                <button
+                    id="sendButton"
+                    onclick="sendMessage()"
+                    class="bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg px-6 py-3 transition-colors font-medium"
+                >
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Sidebar -->
+    <div class="w-80 progress-sidebar p-6" id="progressSidebar">
+        <div class="sticky top-0">
+            <h3 class="text-white text-lg font-semibold mb-6">Setup Progress</h3>
+
+            <!-- Progress Steps -->
+            <div class="space-y-4 mb-8">
+                <div class="progress-step border border-white/20 rounded-lg p-4 active" id="step1">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-stethoscope text-white"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Indication Selection</div>
+                            <div class="text-white/60 text-xs">Choose therapeutic area</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step2">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-target text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Research Objectives</div>
+                            <div class="text-white/60 text-xs">Define analysis goals</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step3">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-users text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Patient Population</div>
+                            <div class="text-white/60 text-xs">Define inclusion criteria</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step4">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-database text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Data Sources</div>
+                            <div class="text-white/60 text-xs">Select claims databases</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step5">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-shopping-basket text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Market Basket</div>
+                            <div class="text-white/60 text-xs">Comorbidities & events</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step6">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-users-cog text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Patient Cohort</div>
+                            <div class="text-white/60 text-xs">Define cohort criteria</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step7">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-pills text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Episodes & Regimens</div>
+                            <div class="text-white/60 text-xs">Treatment definitions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step8">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-route text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Journey Progression</div>
+                            <div class="text-white/60 text-xs">Line advancement logic</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step9">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-chart-line text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Analytics Setup</div>
+                            <div class="text-white/60 text-xs">Configure outputs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Progress -->
+            <div class="bg-white/10 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white font-medium text-sm">Completion</span>
+                    <span class="text-white text-sm" id="overallProgress">0%</span>
+                </div>
+                <div class="w-full bg-white/20 rounded-full h-2">
+                    <div class="bg-teal-400 h-2 rounded-full transition-all duration-500" style="width: 0%" id="progressBar"></div>
+                </div>
+                <div class="text-white/60 text-xs mt-2" id="progressStatus">
+                    Selecting indication...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let conversationData = {};
+        let isProcessing = false;
+        let geminiAPI = null;
+        let selectedIndication = '';
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Generic Indication Setup loaded');
+
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('input', autoResizeTextarea);
+            messageInput.addEventListener('keydown', handleKeyDown);
+
+            initializeGeminiAPI();
+            updateLandingPageStatus('in-progress');
+        });
+
+        function initializeGeminiAPI() {
+            const apiKey = window.GEMINI_API_KEY || null;
+
+            if (apiKey) {
+                geminiAPI = {
+                    apiKey: apiKey,
+                    apiUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+
+                    async generateResponse(userMessage, context = '') {
+                        try {
+                            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    contents: [{
+                                        parts: [{
+                                            text: `You are an AI assistant helping configure patient journey analysis from claims data. Context: ${context}\n\nUser message: ${userMessage}\n\nRespond appropriately to help guide the conversation forward. Be concise and healthcare-focused.`
+                                        }]
+                                    }],
+                                    generationConfig: {
+                                        temperature: 0.7,
+                                        maxOutputTokens: 200,
+                                    }
+                                })
+                            });
+
+                            if (!response.ok) throw new Error('API request failed');
+
+                            const data = await response.json();
+                            return data.candidates[0].content.parts[0].text;
+                        } catch (error) {
+                            console.warn('Gemini API error:', error);
+                            return this.getFallbackResponse(userMessage);
+                        }
+                    },
+
+                    getFallbackResponse(userMessage) {
+                        return `Thank you for specifying "${userMessage}". This is an excellent choice for patient journey analysis. Let me help you configure a comprehensive study for this indication.`;
+                    }
+                };
+                console.log('Gemini API initialized');
+            } else {
+                console.log('No Gemini API key found, using fallback responses');
+            }
+        }
+
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('messageInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function selectSuggestion(button) {
+            const messageInput = document.getElementById('messageInput');
+            messageInput.value = button.textContent.trim();
+            messageInput.focus();
+
+            document.querySelectorAll('.suggested-response').forEach(btn => {
+                btn.classList.remove('bg-teal-500/30', 'border-teal-400');
+            });
+            button.classList.add('bg-teal-500/30', 'border-teal-400');
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (!message || isProcessing) return;
+
+            isProcessing = true;
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            addUserMessage(message);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            selectedIndication = message;
+            conversationData.indication = message;
+
+            hideSuggestions();
+            showTypingIndicator();
+
+            let aiResponse;
+            if (geminiAPI) {
+                aiResponse = await geminiAPI.generateResponse(message, "User is selecting an indication for patient journey analysis");
+            } else {
+                aiResponse = `Perfect! I'll help you set up a comprehensive patient journey analysis for ${message}. This indication has unique characteristics that we'll need to consider in our configuration.`;
+            }
+
+            hideTypingIndicator();
+            addAIMessage(aiResponse);
+
+            // Mark step 1 complete and move to step 2
+            updateStepProgress(1, 'completed');
+            updateStepProgress(2, 'active');
+            updateOverallProgress(11);
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Continue to next step
+            showTypingIndicator();
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            hideTypingIndicator();
+
+            addAIMessage(`Now, let's define your research objectives for ${selectedIndication}. What specific aspects of the patient journey are you most interested in exploring?`);
+
+            showSuggestions([
+                `Treatment patterns and sequencing for ${selectedIndication}`,
+                'Time to treatment initiation and delays',
+                'Healthcare resource utilization and costs',
+                'Treatment persistence and adherence',
+                'Real-world effectiveness outcomes'
+            ]);
+
+            sendButton.disabled = false;
+            sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            isProcessing = false;
+        }
+
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start space-x-4 mb-6 justify-end';
+
+            messageDiv.innerHTML = `
+                <div class="chat-bubble user rounded-lg p-4 text-white">
+                    <div class="flex items-center mb-2 justify-end">
+                        <span class="text-xs text-white/80 mr-2">Just now</span>
+                        <span class="font-medium">You</span>
+                    </div>
+                    <p>${message}</p>
+                </div>
+                <div class="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user text-white text-sm"></i>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addAIMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start space-x-4 mb-6';
+
+            messageDiv.innerHTML = `
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-4 text-white">
+                    <div class="flex items-center mb-2">
+                        <span class="font-medium">AI Research Assistant</span>
+                        <span class="text-xs text-white/60 ml-2">Just now</span>
+                    </div>
+                    <p>${message}</p>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showSuggestions(suggestions) {
+            hideSuggestions();
+
+            const chatMessages = document.getElementById('chatMessages');
+            const suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'flex flex-wrap gap-3 mb-6 ml-14';
+            suggestionsContainer.id = 'currentSuggestions';
+
+            suggestions.forEach(suggestion => {
+                const button = document.createElement('button');
+                button.className = 'suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium';
+                button.textContent = suggestion;
+                button.onclick = () => selectSuggestion(button);
+                suggestionsContainer.appendChild(button);
+            });
+
+            chatMessages.appendChild(suggestionsContainer);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideSuggestions() {
+            const currentSuggestions = document.getElementById('currentSuggestions');
+            if (currentSuggestions) {
+                currentSuggestions.remove();
+            }
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'flex items-start space-x-4 mb-6';
+
+            typingDiv.innerHTML = `
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-4 text-white">
+                    <div class="flex items-center space-x-2">
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full"></div>
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full" style="animation-delay: 0.2s"></div>
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full" style="animation-delay: 0.4s"></div>
+                        <span class="text-white/60 text-sm ml-2">AI is thinking...</span>
+                    </div>
+                </div>
+            `;
+
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function updateStepProgress(step, status) {
+            const stepElement = document.getElementById(`step${step}`);
+            if (!stepElement) return;
+
+            const icon = stepElement.querySelector('i');
+            stepElement.classList.remove('active', 'completed');
+
+            if (status === 'active') {
+                stepElement.classList.add('active');
+                icon.className = 'fas fa-spinner fa-spin text-teal-400';
+            } else if (status === 'completed') {
+                stepElement.classList.add('completed');
+                icon.className = 'fas fa-check text-green-400';
+            }
+        }
+
+        function updateOverallProgress(percentage) {
+            document.getElementById('overallProgress').textContent = Math.round(percentage) + '%';
+            document.getElementById('progressBar').style.width = percentage + '%';
+
+            if (percentage < 11) {
+                document.getElementById('progressStatus').textContent = 'Selecting indication...';
+            } else if (percentage < 22) {
+                document.getElementById('progressStatus').textContent = 'Defining objectives...';
+            } else {
+                document.getElementById('progressStatus').textContent = 'Configuring analysis...';
+            }
+        }
+
+        function updateLandingPageStatus(status) {
+            localStorage.setItem('genericSetupStatus', status);
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
