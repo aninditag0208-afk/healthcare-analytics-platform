@@ -319,6 +319,7 @@
         let isProcessing = false;
         let geminiAPI = null;
         let selectedIndication = '';
+        let hasCompletedSteps = new Set();
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
@@ -348,7 +349,15 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `You are an AI assistant helping configure patient journey analysis from claims data. Context: ${context}\n\nUser message: ${userMessage}\n\nRespond appropriately to help guide the conversation forward. Be concise and healthcare-focused.`
+                                            text: `You are an AI assistant helping configure patient journey analysis from claims data.
+
+Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing. Claims data includes medical claims (procedures, visits) and pharmacy claims (prescriptions).
+
+Current Context: ${context}
+
+User message: ${userMessage}
+
+Respond appropriately to help guide the conversation forward. Be concise, healthcare-focused, and acknowledge their input before moving to next steps.`
                                         }]
                                     }],
                                     generationConfig: {
@@ -417,47 +426,218 @@
             messageInput.value = '';
             messageInput.style.height = 'auto';
 
-            selectedIndication = message;
-            conversationData.indication = message;
+            // Store conversation data
+            conversationData[`step${currentStep}`] = message;
 
             hideSuggestions();
             showTypingIndicator();
 
-            let aiResponse;
-            if (geminiAPI) {
-                aiResponse = await geminiAPI.generateResponse(message, "User is selecting an indication for patient journey analysis");
-            } else {
-                aiResponse = `Perfect! I'll help you set up a comprehensive patient journey analysis for ${message}. This indication has unique characteristics that we'll need to consider in our configuration.`;
+            try {
+                let aiResponse;
+                let nextStepQuestion = '';
+                let nextSuggestions = [];
+
+                // Use Gemini for natural conversation or fallback to structured flow
+                if (geminiAPI) {
+                    const context = getContextForStep(currentStep, message);
+                    aiResponse = await geminiAPI.generateResponse(message, context);
+                } else {
+                    aiResponse = getFallbackResponse(currentStep, message);
+                }
+
+                hideTypingIndicator();
+                addAIMessage(aiResponse);
+
+                // Mark current step as completed and move to next
+                updateStepProgress(currentStep, 'completed');
+                currentStep++;
+
+                // Continue conversation flow
+                if (currentStep <= 9) {
+                    updateStepProgress(currentStep, 'active');
+                    updateOverallProgress((currentStep - 1) / 9 * 100);
+
+                    // Get next step question and suggestions
+                    const nextStep = getNextStepContent(currentStep);
+
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    showTypingIndicator();
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    hideTypingIndicator();
+
+                    addAIMessage(nextStep.question);
+                    showSuggestions(nextStep.suggestions);
+                } else {
+                    // Complete setup
+                    await completeGenericSetup();
+                }
+            } catch (error) {
+                console.error('Error in sendMessage:', error);
+                hideTypingIndicator();
+                addAIMessage('I apologize for the error. Let me help you continue. Could you tell me more about what you\'re looking for?');
+            } finally {
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                isProcessing = false;
             }
+        }
 
-            hideTypingIndicator();
-            addAIMessage(aiResponse);
+        function getContextForStep(step, userMessage) {
+            const stepContexts = {
+                1: `User is selecting a therapeutic indication: ${userMessage}. Acknowledge their choice and prepare to move to research objectives.`,
+                2: `User defined research objectives for their indication. Their input: ${userMessage}. Acknowledge and prepare to discuss patient population.`,
+                3: `User specified patient population criteria. Their input: ${userMessage}. Acknowledge and move to data sources discussion.`,
+                4: `User selected data sources. Their input: ${userMessage}. Acknowledge and move to market basket analysis.`,
+                5: `User discussed market basket needs. Their input: ${userMessage}. Acknowledge and move to patient cohort definition.`,
+                6: `User defined patient cohort criteria. Their input: ${userMessage}. Acknowledge and move to episodes and regimens.`,
+                7: `User specified episode and regimen preferences. Their input: ${userMessage}. Acknowledge and move to journey progression.`,
+                8: `User discussed journey progression logic. Their input: ${userMessage}. Acknowledge and move to analytics setup.`,
+                9: `User specified analytics preferences. Their input: ${userMessage}. Acknowledge their final input and prepare for completion.`
+            };
 
-            // Mark step 1 complete and move to step 2
-            updateStepProgress(1, 'completed');
-            updateStepProgress(2, 'active');
-            updateOverallProgress(11);
+            return stepContexts[step] || `User provided input for step ${step}: ${userMessage}. Acknowledge their input and help progress the conversation.`;
+        }
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        function getFallbackResponse(step, userMessage) {
+            const indication = conversationData.step1 || selectedIndication || 'your indication';
 
-            // Continue to next step
+            const responses = {
+                1: `Excellent choice! I'll help you set up a comprehensive patient journey analysis for ${userMessage}. Let's dive into the specific aspects you want to focus on.`,
+                2: `Perfect! Understanding ${userMessage} will be key to your ${indication} analysis. This focus will help us configure the right data and metrics.`,
+                3: `Great! Your patient population criteria (${userMessage}) will help us identify the right cohort for analysis.`,
+                4: `Excellent! Using ${userMessage} will provide the comprehensive data coverage we need for your analysis.`,
+                5: `Perfect! Your approach to ${userMessage} will be important for understanding the broader clinical context.`,
+                6: `Great! Your cohort definition approach (${userMessage}) will ensure we capture the right patient journey patterns.`,
+                7: `Excellent! Your episode and regimen preferences (${userMessage}) will help us accurately map treatment patterns.`,
+                8: `Perfect! Your journey progression logic (${userMessage}) will enable sophisticated treatment pathway analysis.`,
+                9: `Wonderful! Your analytics preferences (${userMessage}) will deliver exactly the insights you need.`
+            };
+
+            return responses[step] || `Thank you for that valuable input: "${userMessage}". Let me help you with the next step.`;
+        }
+
+        function getNextStepContent(step) {
+            const indication = conversationData.step1 || selectedIndication || 'your indication';
+
+            const stepContents = {
+                2: {
+                    question: `Now, let's define your research objectives for ${indication}. What specific aspects of the patient journey are you most interested in exploring?`,
+                    suggestions: [
+                        `Treatment patterns and sequencing for ${indication}`,
+                        'Time to treatment initiation and delays',
+                        'Healthcare resource utilization and costs',
+                        'Treatment persistence and adherence',
+                        'Real-world effectiveness outcomes'
+                    ]
+                },
+                3: {
+                    question: `Great! Now let's define your patient population for the ${indication} analysis. Are you interested in all patients or specific subgroups?`,
+                    suggestions: [
+                        `All ${indication} patients`,
+                        'Newly diagnosed patients only',
+                        'Treatment-experienced patients',
+                        'Specific age groups or demographics',
+                        'Patients with certain biomarkers or characteristics'
+                    ]
+                },
+                4: {
+                    question: 'Perfect! Which claims databases would you like to include? Different databases provide different coverage perspectives.',
+                    suggestions: [
+                        'Commercial claims (Optum, IQVIA)',
+                        'Medicare fee-for-service',
+                        'Medicaid databases',
+                        'Integrated datasets (commercial + Medicare)',
+                        'All available databases'
+                    ]
+                },
+                5: {
+                    question: 'Excellent! Now let\'s create your market basket analysis. Are comorbidities and adverse events critical for your research?',
+                    suggestions: [
+                        'Yes, include both comorbidities and adverse events',
+                        'Focus on comorbidities only',
+                        'Focus on adverse events only',
+                        'No, focus purely on treatment patterns',
+                        'Include only treatment-emergent events'
+                    ]
+                },
+                6: {
+                    question: 'Great! How would you like to define patient cohorts and treatment lines?',
+                    suggestions: [
+                        'Standard line definitions for this indication',
+                        'Intent-to-treat from first systemic therapy',
+                        'Per-protocol analysis with treatment gaps',
+                        'Include maintenance therapy as continuation',
+                        'Custom definitions based on clinical practice'
+                    ]
+                },
+                7: {
+                    question: 'Perfect! For episodes and regimens, how should we define treatment episodes?',
+                    suggestions: [
+                        'Combination regimens as single episodes',
+                        'Individual agents tracked separately',
+                        'Fixed episode duration based on standard cycles',
+                        'Variable episodes based on administration',
+                        'Include supportive care medications'
+                    ]
+                },
+                8: {
+                    question: 'Excellent! For journey progression, what factors should drive line advancement decisions?',
+                    suggestions: [
+                        'Standard progression regardless of prior therapy',
+                        'Consider prior treatment response patterns',
+                        'Include biomarker and resistance considerations',
+                        'Factor in toxicity and tolerability issues',
+                        'Focus on treatment switches vs. discontinuations'
+                    ]
+                },
+                9: {
+                    question: 'Almost there! What specific analytics outputs would be most valuable for your research?',
+                    suggestions: [
+                        'Treatment pattern visualizations',
+                        'Time-to-event analyses',
+                        'Healthcare cost breakdowns',
+                        'Real-world outcomes metrics',
+                        'Comparative effectiveness data'
+                    ]
+                }
+            };
+
+            return stepContents[step] || {
+                question: 'Let\'s continue configuring your analysis. What would you like to focus on next?',
+                suggestions: ['Continue with standard configuration']
+            };
+        }
+
+        async function completeGenericSetup() {
+            updateOverallProgress(100);
+
             showTypingIndicator();
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 2000));
             hideTypingIndicator();
 
-            addAIMessage(`Now, let's define your research objectives for ${selectedIndication}. What specific aspects of the patient journey are you most interested in exploring?`);
+            const indication = conversationData.step1 || selectedIndication;
+            addAIMessage(`🎉 Perfect! Your ${indication} patient journey analysis is now configured and ready. I've set up a comprehensive analysis framework based on all your specifications. You can now proceed to detailed analytics!`);
 
-            showSuggestions([
-                `Treatment patterns and sequencing for ${selectedIndication}`,
-                'Time to treatment initiation and delays',
-                'Healthcare resource utilization and costs',
-                'Treatment persistence and adherence',
-                'Real-world effectiveness outcomes'
-            ]);
+            // Update status and show completion
+            updateLandingPageStatus('completed');
 
-            sendButton.disabled = false;
-            sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
-            isProcessing = false;
+            setTimeout(() => {
+                const chatMessages = document.getElementById('chatMessages');
+                const buttonDiv = document.createElement('div');
+                buttonDiv.className = 'flex justify-center mb-6';
+                buttonDiv.innerHTML = `
+                    <button onclick="goToHome()" class="bg-teal-500 hover:bg-teal-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+                        <i class="fas fa-home mr-2"></i>
+                        Return to Home
+                    </button>
+                `;
+                chatMessages.appendChild(buttonDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1000);
+        }
+
+        function goToHome() {
+            window.location.href = 'index.html';
         }
 
         function addUserMessage(message) {

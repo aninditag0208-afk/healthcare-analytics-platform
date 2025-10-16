@@ -471,7 +471,15 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `You are an AI assistant helping configure NSCLC patient journey analysis from claims data. Context: ${context}\n\nUser message: ${userMessage}\n\nRespond appropriately to help guide the conversation forward. Be concise and healthcare-focused.`
+                                            text: `You are an AI assistant helping configure NSCLC patient journey analysis from claims data.
+
+Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing. Claims data includes medical claims (procedures, visits) and pharmacy claims (prescriptions).
+
+Current Context: ${context}
+
+User message: ${userMessage}
+
+Respond appropriately to help guide the conversation forward. Be concise, healthcare-focused, acknowledge their input, and help progress the conversation to the next step of NSCLC analysis configuration.`
                                         }]
                                     }],
                                     generationConfig: {
@@ -567,49 +575,26 @@
                 // Store conversation data for current step
                 conversationData[`step${currentStep}`] = message;
 
-                // Check if message matches expected patterns or needs AI interpretation
-                const isStandardResponse = await validateStandardResponse(message);
+                // Use Gemini API for natural conversation flow
+                let aiResponse;
+                if (geminiAPI) {
+                    const stepContext = getStepContext(currentStep);
+                    const context = `Current step ${currentStep}: ${stepContext}. User provided: "${message}". Acknowledge their input and progress to the next NSCLC analysis configuration step.`;
 
-                if (!isStandardResponse) {
-                    await handleUnexpectedResponse(message);
-                    return;
-                }
-
-                // Check for follow-up questions
-                const needsFollowUp = await checkForFollowUp(message);
-
-                if (needsFollowUp) {
-                    // Handle follow-up without progressing to next step
-                    conversationData[`step${currentStep}_followup`] = message;
-                    return;
-                }
-
-                // Mark current step as completed
-                hasCompletedSteps.add(currentStep);
-                updateStepProgress(currentStep, 'completed');
-                updateOverallProgress((hasCompletedSteps.size / 8) * 100);
-
-                // Show typing indicator
-                showTypingIndicator();
-
-                // Simulate AI processing time
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                hideTypingIndicator();
-
-                // Move to next step
-                currentStep++;
-
-                if (currentStep <= 7) {
-                    // Continue conversation
-                    const nextFlow = conversationFlow[currentStep];
-                    addAIMessage(nextFlow.question);
-                    showSuggestions(nextFlow.suggestions);
-                    updateStepProgress(currentStep, 'active');
+                    showTypingIndicator();
+                    aiResponse = await geminiAPI.generateResponse(message, context);
+                    hideTypingIndicator();
+                    addAIMessage(aiResponse);
                 } else {
-                    // Complete setup
-                    await completeSetup();
+                    // Fallback to simple acknowledgment
+                    showTypingIndicator();
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    hideTypingIndicator();
+                    addAIMessage(`Great! I've noted your preferences: "${message}". Let's continue with the next aspect of your NSCLC analysis.`);
                 }
+
+                // Progress to next step after AI acknowledgment
+                await progressToNextStep(message);
             } catch (error) {
                 console.error('Error in sendMessage:', error);
                 hideTypingIndicator();
@@ -631,17 +616,15 @@
         }
 
         async function validateStandardResponse(message) {
-            const currentFlow = conversationFlow[currentStep];
-            if (!currentFlow) return true;
+            // Accept any reasonable input - suggestions are guides, not requirements
+            const lowerMessage = message.toLowerCase().trim();
 
-            // Check if message closely matches any suggestion
-            const lowerMessage = message.toLowerCase();
-            const suggestions = currentFlow.suggestions.map(s => s.toLowerCase());
+            // Reject only truly invalid inputs
+            if (lowerMessage.length < 2) return false;
+            if (/^[^a-zA-Z]*$/.test(lowerMessage)) return false; // Only punctuation/numbers
 
-            return suggestions.some(suggestion =>
-                lowerMessage.includes(suggestion.substring(0, Math.min(10, suggestion.length))) ||
-                suggestion.includes(lowerMessage.substring(0, Math.min(10, lowerMessage.length)))
-            );
+            // Accept all other inputs as valid
+            return true;
         }
 
         async function handleUnexpectedResponse(message) {
@@ -665,8 +648,7 @@
             }
         }
 
-        function generateContextualFallback(message) {
-            const lowerMessage = message.toLowerCase();
+        function generateAcceptingFallback(message) {
             const stepContext = {
                 1: "research objectives and analysis goals",
                 2: "patient population criteria",
@@ -677,12 +659,40 @@
                 7: "journey progression logic"
             };
 
-            if (lowerMessage.includes('help') || lowerMessage.includes('explain')) {
-                return `I understand you'd like more information about ${stepContext[currentStep] || 'this configuration step'}. Let me help clarify the options above. Each choice will affect how we analyze your NSCLC patient data. Which aspect would you like me to explain further?`;
-            } else if (lowerMessage.includes('custom') || lowerMessage.includes('different')) {
-                return `I see you're looking for a custom approach to ${stepContext[currentStep] || 'this step'}. While I can accommodate specific needs, could you select the closest option from above and we can refine it in the next steps?`;
+            return `Perfect! I understand your approach to ${stepContext[currentStep] || 'this configuration step'}: "${message}". This gives me valuable insight into your NSCLC analysis needs. Let me continue with the next configuration step.`;
+        }
+
+        function getStepContext(step) {
+            const contexts = {
+                1: "defining research objectives for NSCLC patient journey analysis",
+                2: "selecting patient population criteria and inclusion/exclusion requirements",
+                3: "choosing claims databases and data sources for comprehensive coverage",
+                4: "configuring market basket analysis including comorbidities and adverse events",
+                5: "defining patient cohort creation rules and treatment line definitions",
+                6: "setting up episode and regimen creation parameters for treatment tracking",
+                7: "configuring journey progression logic and line advancement rules"
+            };
+            return contexts[step] || "configuring NSCLC analysis parameters";
+        }
+
+        async function progressToNextStep(userInput) {
+            // Store the user input and continue to next step
+            conversationData[`step${currentStep}`] = userInput;
+            hasCompletedSteps.add(currentStep);
+            updateStepProgress(currentStep, 'completed');
+            updateOverallProgress((hasCompletedSteps.size / 8) * 100);
+
+            currentStep++;
+
+            if (currentStep <= 7) {
+                const nextFlow = conversationFlow[currentStep];
+                setTimeout(() => {
+                    addAIMessage(nextFlow.question);
+                    showSuggestions(nextFlow.suggestions);
+                    updateStepProgress(currentStep, 'active');
+                }, 1000);
             } else {
-                return `Thank you for that input about ${stepContext[currentStep] || 'your analysis needs'}. To keep our configuration on track, could you please select one of the suggested options above? This helps ensure we set up your NSCLC analysis correctly.`;
+                setTimeout(() => completeSetup(), 1000);
             }
         }
 
