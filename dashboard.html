@@ -187,40 +187,40 @@
     <div class="flex-1 overflow-y-auto bg-gray-50">
         <!-- Charts Container -->
         <div class="p-6 space-y-6">
-            <!-- Chart 1: Drug Episode Claims vs Gaps -->
+            <!-- Chart 1: Payer Distribution Pie Chart -->
             <div class="chart-container">
                 <h3 class="chart-title">
-                    <i class="fas fa-pills text-blue-600 mr-2"></i>
-                    Drug Episode Claims vs Gaps Analysis
+                    <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
+                    Distribution of treated patients within top 5 'Commercial' payers
                 </h3>
-                <canvas id="episodeGapsChart" class="chart-canvas"></canvas>
+                <canvas id="payerDistributionChart" class="chart-canvas"></canvas>
             </div>
 
-            <!-- Chart 2: Market Share by Lines of Therapy -->
+            <!-- Chart 2: Payer Distribution Bar Chart -->
             <div class="chart-container">
                 <h3 class="chart-title">
-                    <i class="fas fa-chart-pie text-green-600 mr-2"></i>
-                    Market Share by Lines of Therapy
+                    <i class="fas fa-chart-bar text-green-600 mr-2"></i>
+                    Distribution of treated patients within top 5 'Commercial' payers
+                </h3>
+                <canvas id="payerBarChart" class="chart-canvas"></canvas>
+            </div>
+
+            <!-- Chart 3: Commercial TRx Market Share -->
+            <div class="chart-container">
+                <h3 class="chart-title">
+                    <i class="fas fa-chart-line text-purple-600 mr-2"></i>
+                    Commercial TRx Market Share
                 </h3>
                 <canvas id="marketShareChart" class="chart-canvas"></canvas>
             </div>
 
-            <!-- Chart 3: Payer Coverage Distribution -->
+            <!-- Chart 4: OOP Cost by Payer -->
             <div class="chart-container">
                 <h3 class="chart-title">
-                    <i class="fas fa-building text-purple-600 mr-2"></i>
-                    Payer Coverage Distribution
+                    <i class="fas fa-dollar-sign text-orange-600 mr-2"></i>
+                    OOP Cost by Payer
                 </h3>
-                <canvas id="payerCoverageChart" class="chart-canvas"></canvas>
-            </div>
-
-            <!-- Chart 4: Treatment Persistence Over Time -->
-            <div class="chart-container">
-                <h3 class="chart-title">
-                    <i class="fas fa-chart-line text-orange-600 mr-2"></i>
-                    Treatment Persistence Over Time
-                </h3>
-                <canvas id="persistenceChart" class="chart-canvas"></canvas>
+                <canvas id="oopCostChart" class="chart-canvas"></canvas>
             </div>
         </div>
     </div>
@@ -337,30 +337,35 @@ Provide helpful insights about the data patterns, business rules, or recommendat
             // Register the datalabels plugin
             Chart.register(ChartDataLabels);
 
-            createEpisodeGapsChart();
+            createPayerDistributionChart();
+            createPayerBarChart();
             createMarketShareChart();
-            createPayerCoverageChart();
-            createPersistenceChart();
+            createOOPCostChart();
         }
 
-        function createEpisodeGapsChart() {
-            const ctx = document.getElementById('episodeGapsChart').getContext('2d');
+        function createPayerDistributionChart() {
+            const ctx = document.getElementById('payerDistributionChart').getContext('2d');
             new Chart(ctx, {
-                type: 'bar',
+                type: 'pie',
                 data: {
-                    labels: ['Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024'],
+                    labels: ['Commercial', 'HIX', 'Managed Medicaid', 'Medicaid FFS', 'Part D'],
                     datasets: [{
-                        label: 'Claims with Episodes',
-                        data: [12500, 13200, 14100, 13800, 14500],
-                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                        borderColor: 'rgb(59, 130, 246)',
-                        borderWidth: 1
-                    }, {
-                        label: 'Claims with Gaps',
-                        data: [2100, 1950, 1750, 1600, 1400],
-                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                        borderColor: 'rgb(239, 68, 68)',
-                        borderWidth: 1
+                        data: [37.50, 20.83, 16.67, 12.50, 12.50],
+                        backgroundColor: [
+                            'rgba(45, 212, 191, 0.8)',  // Teal for Commercial
+                            'rgba(134, 239, 172, 0.8)', // Light green for HIX
+                            'rgba(59, 130, 246, 0.8)',  // Blue for Managed Medicaid
+                            'rgba(147, 197, 253, 0.8)', // Light blue for Medicaid FFS
+                            'rgba(147, 51, 234, 0.8)'   // Purple for Part D
+                        ],
+                        borderColor: [
+                            'rgb(45, 212, 191)',
+                            'rgb(134, 239, 172)',
+                            'rgb(59, 130, 246)',
+                            'rgb(147, 197, 253)',
+                            'rgb(147, 51, 234)'
+                        ],
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -368,26 +373,79 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'top',
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
                         },
                         datalabels: {
-                            anchor: 'end',
-                            align: 'top',
                             formatter: function(value) {
-                                return value.toLocaleString();
+                                return value + '%';
                             },
+                            color: 'white',
                             font: {
-                                size: 11,
+                                size: 12,
                                 weight: 'bold'
                             }
                         }
+                    }
+                }
+            });
+        }
+
+        function createPayerBarChart() {
+            const ctx = document.getElementById('payerBarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Caremark', 'Aetna', 'ESI', 'Humana', 'UHC'],
+                    datasets: [{
+                        label: 'Market Share %',
+                        data: [80, 60, 40, 30, 20],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            formatter: function(value) {
+                                return value + '%';
+                            },
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            },
+                            color: 'black'
+                        }
                     },
                     scales: {
-                        y: {
+                        x: {
                             beginAtZero: true,
+                            max: 100,
                             ticks: {
                                 callback: function(value) {
-                                    return value.toLocaleString();
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: {
+                                    size: 12
                                 }
                             }
                         }
@@ -399,122 +457,45 @@ Provide helpful insights about the data patterns, business rules, or recommendat
         function createMarketShareChart() {
             const ctx = document.getElementById('marketShareChart').getContext('2d');
             new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['1st Line', '2nd Line', '3rd Line', '4th+ Line'],
-                    datasets: [{
-                        data: [45, 28, 18, 9],
-                        backgroundColor: [
-                            'rgba(34, 197, 94, 0.8)',
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(168, 85, 247, 0.8)',
-                            'rgba(239, 68, 68, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgb(34, 197, 94)',
-                            'rgb(59, 130, 246)',
-                            'rgb(168, 85, 247)',
-                            'rgb(239, 68, 68)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                        },
-                        datalabels: {
-                            formatter: function(value, context) {
-                                return value + '%';
-                            },
-                            color: 'white',
-                            font: {
-                                size: 14,
-                                weight: 'bold'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createPayerCoverageChart() {
-            const ctx = document.getElementById('payerCoverageChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Commercial', 'Medicare', 'Medicaid', 'Cash Pay', 'Other'],
-                    datasets: [{
-                        label: 'Coverage %',
-                        data: [78, 85, 62, 15, 45],
-                        backgroundColor: [
-                            'rgba(168, 85, 247, 0.8)',
-                            'rgba(34, 197, 94, 0.8)',
-                            'rgba(59, 130, 246, 0.8)',
-                            'rgba(239, 68, 68, 0.8)',
-                            'rgba(156, 163, 175, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgb(168, 85, 247)',
-                            'rgb(34, 197, 94)',
-                            'rgb(59, 130, 246)',
-                            'rgb(239, 68, 68)',
-                            'rgb(156, 163, 175)'
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
-                            formatter: function(value) {
-                                return value + '%';
-                            },
-                            font: {
-                                size: 12,
-                                weight: 'bold'
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function createPersistenceChart() {
-            const ctx = document.getElementById('persistenceChart').getContext('2d');
-            new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Month 1', 'Month 3', 'Month 6', 'Month 9', 'Month 12', 'Month 18', 'Month 24'],
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                     datasets: [{
-                        label: 'Treatment Persistence',
-                        data: [100, 85, 72, 65, 58, 48, 42],
-                        borderColor: 'rgb(245, 101, 101)',
-                        backgroundColor: 'rgba(245, 101, 101, 0.1)',
+                        label: 'Aetna',
+                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        borderColor: 'rgba(45, 212, 191, 1)',
+                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
                         borderWidth: 3,
-                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
                         tension: 0.4
+                    }, {
+                        label: 'Caremark',
+                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        borderColor: 'rgba(147, 51, 234, 1)',
+                        backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.4
+                    }, {
+                        label: 'Express Scripts',
+                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.4
+                    }, {
+                        label: 'Nation',
+                        data: [65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65],
+                        borderColor: 'rgba(234, 179, 8, 1)',
+                        backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        tension: 0
                     }]
                 },
                 options: {
@@ -522,25 +503,34 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
                         },
                         datalabels: {
-                            backgroundColor: 'rgba(245, 101, 101, 0.8)',
-                            borderColor: 'rgb(245, 101, 101)',
-                            borderRadius: 4,
-                            borderWidth: 1,
-                            color: 'white',
+                            display: true,
+                            align: 'top',
                             formatter: function(value) {
-                                return value + '%';
+                                return value;
                             },
                             font: {
                                 size: 10,
-                                weight: 'bold'
+                                weight: 'normal'
                             },
-                            padding: 4
+                            color: 'black'
                         }
                     },
                     scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             max: 100,
@@ -548,12 +538,113 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                                 callback: function(value) {
                                     return value + '%';
                                 }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
                             }
                         }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
                     }
                 }
             });
         }
+
+        function createOOPCostChart() {
+            const ctx = document.getElementById('oopCostChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Aetna',
+                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        borderColor: 'rgba(45, 212, 191, 1)',
+                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.4
+                    }, {
+                        label: 'Caremark',
+                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        borderColor: 'rgba(147, 51, 234, 1)',
+                        backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.4
+                    }, {
+                        label: 'Express Scripts',
+                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.4
+                    }, {
+                        label: 'Nation',
+                        data: [65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65],
+                        borderColor: 'rgba(234, 179, 8, 1)',
+                        backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        tension: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        datalabels: {
+                            display: true,
+                            align: 'top',
+                            formatter: function(value) {
+                                return value;
+                            },
+                            font: {
+                                size: 10,
+                                weight: 'normal'
+                            },
+                            color: 'black'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
 
         function autoResizeTextarea() {
             const textarea = document.getElementById('messageInput');
