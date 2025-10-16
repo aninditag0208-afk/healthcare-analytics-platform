@@ -91,14 +91,14 @@
         <!-- Indication Cards -->
         <div class="grid grid-cols-4 gap-6 mb-12">
             <!-- NSCLC Setup -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer">
+            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="handleNSCLCClick()" id="nsclcCard">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="text-lg font-semibold">NSCLC</h3>
-                    <div class="status-dot bg-gray-400 rounded-full"></div>
+                    <div class="status-dot rounded-full" id="nsclcStatusDot"></div>
                 </div>
-                <p class="text-sm text-white/80">Setup</p>
+                <p class="text-sm text-white/80" id="nsclcStatusText">Setup</p>
                 <div class="absolute bottom-4 right-4 text-white/60">
-                    <i class="fas fa-sliders-h text-lg"></i>
+                    <i class="fas fa-sliders-h text-lg" id="nsclcIcon"></i>
                 </div>
             </div>
 
@@ -206,11 +206,63 @@
             }
         });
 
+        function handleNSCLCClick() {
+            const status = getNSCLCStatus();
+
+            if (status === 'setup') {
+                // Navigate to conversational setup
+                window.location.href = 'nsclc-setup.html';
+            } else if (status === 'completed') {
+                // Navigate to indication analysis
+                navigateToIndication('nsclc');
+            }
+            // If in-progress, do nothing (user can't click)
+        }
+
+        function getNSCLCStatus() {
+            return localStorage.getItem('nsclcStatus') || 'setup';
+        }
+
+        function updateNSCLCStatus() {
+            const status = getNSCLCStatus();
+            const statusDot = document.getElementById('nsclcStatusDot');
+            const statusText = document.getElementById('nsclcStatusText');
+            const nsclcIcon = document.getElementById('nsclcIcon');
+            const nsclcCard = document.getElementById('nsclcCard');
+
+            switch(status) {
+                case 'setup':
+                    statusDot.className = 'status-dot bg-gray-400 rounded-full';
+                    statusText.textContent = 'Setup';
+                    nsclcIcon.className = 'fas fa-sliders-h text-lg';
+                    nsclcCard.style.cursor = 'pointer';
+                    break;
+                case 'in-progress':
+                    statusDot.className = 'status-dot bg-orange-500 rounded-full';
+                    statusText.textContent = 'In Progress';
+                    nsclcIcon.className = 'fas fa-spinner fa-spin text-lg';
+                    nsclcCard.style.cursor = 'not-allowed';
+                    nsclcCard.style.opacity = '0.7';
+                    break;
+                case 'completed':
+                    statusDot.className = 'status-dot bg-green-500 rounded-full';
+                    statusText.textContent = 'View';
+                    nsclcIcon.className = 'fas fa-arrow-right text-lg';
+                    nsclcCard.style.cursor = 'pointer';
+                    nsclcCard.style.opacity = '1';
+                    break;
+            }
+        }
+
         // Add some interactive effects
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Healthcare Analytics Platform loaded successfully!');
 
-            // Removed sidebar state initialization
+            // Update NSCLC status on page load
+            updateNSCLCStatus();
+
+            // Check for status changes periodically
+            setInterval(updateNSCLCStatus, 1000);
 
             // Add typing animation to placeholder
             const input = document.getElementById('analysisInput');
