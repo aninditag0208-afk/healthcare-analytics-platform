@@ -261,7 +261,7 @@
         let geminiAPI = null;
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             console.log('Analytics Dashboard loaded');
 
             // Get URL parameters
@@ -276,7 +276,7 @@
             initializeCharts();
 
             // Initialize AI
-            initializeGeminiAPI();
+            await initializeGeminiAPI();
 
             // Auto-resize textarea
             const messageInput = document.getElementById('messageInput');
@@ -293,8 +293,20 @@
             document.title = `${analysisDisplayName} - ${indicationDisplayName}`;
         }
 
-        function initializeGeminiAPI() {
-            const apiKey = window.GEMINI_API_KEY || null;
+        async function initializeGeminiAPI() {
+            let apiKey = window.GEMINI_API_KEY || null;
+
+            // If no API key in window, try to fetch from serverless function
+            if (!apiKey) {
+                try {
+                    const response = await fetch('/api/config');
+                    const data = await response.json();
+                    apiKey = data.geminiApiKey;
+                    window.GEMINI_API_KEY = apiKey; // Cache it
+                } catch (error) {
+                    console.warn('Failed to fetch API key:', error);
+                }
+            }
 
             if (apiKey) {
                 geminiAPI = {
