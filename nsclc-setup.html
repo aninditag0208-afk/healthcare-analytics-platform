@@ -637,6 +637,18 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             } catch (error) {
                 console.error('Error in sendMessage:', error);
                 hideTypingIndicator();
+
+                // Special handling for final step
+                if (currentStep === 10) {
+                    console.log('Error on final step, attempting to complete setup...');
+                    try {
+                        await completeSetup();
+                        return;
+                    } catch (completeError) {
+                        console.error('Error in completeSetup:', completeError);
+                    }
+                }
+
                 addAIMessage('I apologize, but I encountered an error. Let me help you continue with the setup. Could you please try again or select one of the suggested options?');
 
                 // Show suggestions for current step
@@ -715,6 +727,8 @@ Respond appropriately to help guide the conversation forward. Be concise, health
         }
 
         async function progressToNextStep(userInput) {
+            console.log(`Progressing from step ${currentStep} to step ${currentStep + 1}`);
+
             // Store the user input and continue to next step
             conversationData[`step${currentStep}`] = userInput;
             hasCompletedSteps.add(currentStep);
@@ -731,7 +745,17 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                     updateStepProgress(currentStep, 'active');
                 }, 1000);
             } else {
-                setTimeout(() => completeSetup(), 1000);
+                setTimeout(async () => {
+                    try {
+                        await completeSetup();
+                    } catch (error) {
+                        console.error('Error in completeSetup from progressToNextStep:', error);
+                        // Fallback completion
+                        addAIMessage("🎉 Your NSCLC analysis setup is complete! You can now proceed to the analysis dashboard.");
+                        updateLandingPageStatus('completed');
+                        showCompletionButton();
+                    }
+                }, 1000);
             }
         }
 
@@ -968,7 +992,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             addAIMessage("Perfect! I have all the information needed to set up your NSCLC patient journey analysis. Let me process this configuration and prepare your analytics environment...");
 
             // Update all remaining steps
-            updateStepProgress(8, 'active');
+            updateStepProgress(10, 'active');
 
             // Show processing message
             showTypingIndicator();
@@ -979,7 +1003,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             hideTypingIndicator();
 
             // Complete final step
-            updateStepProgress(8, 'completed');
+            updateStepProgress(10, 'completed');
             updateOverallProgress(100);
 
             // Show completion message with summary
@@ -995,14 +1019,16 @@ Respond appropriately to help guide the conversation forward. Be concise, health
 
         function generateSetupSummary() {
             const steps = [
-                `• Research Focus: ${conversationData.step1 || 'Treatment patterns analysis'}`,
-                `• Patient Population: ${conversationData.step2 || 'All NSCLC patients'}`,
-                `• Data Sources: ${conversationData.step3 || 'Integrated claims databases'}`,
-                `• Market Basket: ${conversationData.step4 || 'Standard comorbidity tracking'}`,
-                `• Cohort Definition: ${conversationData.step5 || 'Standard line definitions'}`,
-                `• Episode Creation: ${conversationData.step6 || 'Combination regimen tracking'}`,
-                `• Progression Logic: ${conversationData.step7 || 'Backbone therapy considerations'}`,
-                `• Analytics Output: ${conversationData.step8 || 'Comprehensive visualizations'}`
+                `• Stage/Setting Focus: ${conversationData.step1 || 'Metastatic NSCLC'}`,
+                `• Biomarker Focus: ${conversationData.step2 || 'All biomarkers'}`,
+                `• Patient Segmentation: ${conversationData.step3 || 'All patients'}`,
+                `• Claims Databases: ${conversationData.step4 || 'Commercial claims'}`,
+                `• Market Basket: ${conversationData.step5 || 'Standard analysis'}`,
+                `• Cohort Filtering: ${conversationData.step6 || 'No filters'}`,
+                `• Backbone Therapy: ${conversationData.step7 || 'Standard progression'}`,
+                `• Cohort Parameters: ${conversationData.step8 || 'Standard line definitions'}`,
+                `• Analytics Outputs: ${conversationData.step9 || 'Treatment visualizations'}`,
+                `• Reference Materials: ${conversationData.step10 || 'Standard configuration'}`
             ];
             return steps.join('\n');
         }
