@@ -483,19 +483,244 @@ Respond appropriately to help guide the conversation forward. Be concise, health
         }
 
         function getContextForStep(step, userMessage) {
+            const indication = conversationData.step1 || selectedIndication || 'general indication';
+            const indicationContext = getIndicationContext(indication);
+
             const stepContexts = {
-                1: `User is selecting a therapeutic indication: ${userMessage}. Acknowledge their choice and prepare to move to research objectives.`,
-                2: `User defined research objectives for their indication. Their input: ${userMessage}. Acknowledge and prepare to discuss patient population.`,
-                3: `User specified patient population criteria. Their input: ${userMessage}. Acknowledge and move to data sources discussion.`,
-                4: `User selected data sources. Their input: ${userMessage}. Acknowledge and move to market basket analysis.`,
-                5: `User discussed market basket needs. Their input: ${userMessage}. Acknowledge and move to patient cohort definition.`,
-                6: `User defined patient cohort criteria. Their input: ${userMessage}. Acknowledge and move to episodes and regimens.`,
-                7: `User specified episode and regimen preferences. Their input: ${userMessage}. Acknowledge and move to journey progression.`,
-                8: `User discussed journey progression logic. Their input: ${userMessage}. Acknowledge and move to analytics setup.`,
-                9: `User specified analytics preferences. Their input: ${userMessage}. Acknowledge their final input and prepare for completion.`
+                1: `User is selecting a therapeutic indication: ${userMessage}. ${indicationContext} Acknowledge their choice and prepare to move to research objectives.`,
+                2: `User defined research objectives for ${indication}. Their input: ${userMessage}. ${indicationContext} Acknowledge and prepare to discuss patient population.`,
+                3: `User specified patient population criteria for ${indication}. Their input: ${userMessage}. ${indicationContext} Acknowledge and move to data sources discussion.`,
+                4: `User selected data sources for ${indication} analysis. Their input: ${userMessage}. Acknowledge and move to market basket analysis.`,
+                5: `User discussed market basket needs for ${indication}. Their input: ${userMessage}. ${indicationContext} Acknowledge and move to patient cohort definition.`,
+                6: `User defined patient cohort criteria for ${indication}. Their input: ${userMessage}. Acknowledge and move to episodes and regimens.`,
+                7: `User specified episode and regimen preferences for ${indication}. Their input: ${userMessage}. ${indicationContext} Acknowledge and move to journey progression.`,
+                8: `User discussed journey progression logic for ${indication}. Their input: ${userMessage}. Acknowledge and move to analytics setup.`,
+                9: `User specified analytics preferences for ${indication}. Their input: ${userMessage}. Acknowledge their final input and prepare for completion.`
             };
 
             return stepContexts[step] || `User provided input for step ${step}: ${userMessage}. Acknowledge their input and help progress the conversation.`;
+        }
+
+        function getIndicationContext(indication) {
+            const lowerIndication = indication.toLowerCase();
+
+            if (lowerIndication.includes('obesity')) {
+                return 'Context: Obesity is a metabolic condition managed primarily through lifestyle interventions, medications (GLP-1 agonists, orlistat), and bariatric surgery. No biomarkers are typically used for treatment selection. Focus on BMI categories, comorbidities like diabetes and cardiovascular disease, and treatment persistence with weight management interventions.';
+            } else if (lowerIndication.includes('diabetes')) {
+                return 'Context: Diabetes management includes metformin, insulin, GLP-1 agonists, SGLT2 inhibitors. Key metrics include HbA1c, treatment adherence, and progression through therapy lines. Comorbidities include cardiovascular and renal complications.';
+            } else if (lowerIndication.includes('hypertension')) {
+                return 'Context: Hypertension treatment includes ACE inhibitors, ARBs, diuretics, calcium channel blockers. Focus on blood pressure control, medication adherence, and cardiovascular outcomes.';
+            } else if (lowerIndication.includes('depression')) {
+                return 'Context: Depression treatment includes SSRIs, SNRIs, atypical antidepressants, therapy. Focus on treatment response, medication switches, and persistence. No biomarkers for treatment selection.';
+            } else if (lowerIndication.includes('cancer') || lowerIndication.includes('oncology')) {
+                return 'Context: Cancer treatment may involve biomarker testing for targeted therapies, treatment lines, progression patterns, and resistance mechanisms.';
+            } else {
+                return `Context: For ${indication}, focus on relevant treatment patterns, patient characteristics, and clinical outcomes specific to this condition.`;
+            }
+        }
+
+        function getIndicationSpecificSuggestions(indication, category) {
+            const lowerIndication = indication.toLowerCase();
+
+            if (lowerIndication.includes('obesity')) {
+                return getObesitySuggestions(category);
+            } else if (lowerIndication.includes('diabetes')) {
+                return getDiabetesSuggestions(category);
+            } else if (lowerIndication.includes('hypertension')) {
+                return getHypertensionSuggestions(category);
+            } else if (lowerIndication.includes('depression')) {
+                return getDepressionSuggestions(category);
+            } else if (lowerIndication.includes('cancer') || lowerIndication.includes('oncology')) {
+                return getOncologySuggestions(category);
+            } else {
+                return getGenericSuggestions(indication, category);
+            }
+        }
+
+        function getObesitySuggestions(category) {
+            switch(category) {
+                case 'objectives':
+                    return [
+                        'Weight loss effectiveness and sustainability',
+                        'Treatment persistence with anti-obesity medications',
+                        'Healthcare resource utilization and costs',
+                        'Progression to bariatric surgery',
+                        'Management of obesity-related comorbidities'
+                    ];
+                case 'population':
+                    return [
+                        'All obesity patients (BMI ≥30)',
+                        'Severe obesity patients (BMI ≥35)',
+                        'Obesity with comorbidities (diabetes, hypertension)',
+                        'Specific age groups (pediatric, elderly)',
+                        'Patients by obesity class (I, II, III)'
+                    ];
+                case 'market_basket':
+                    return [
+                        'Include obesity-related comorbidities (diabetes, hypertension, sleep apnea)',
+                        'Focus on cardiovascular comorbidities only',
+                        'Include metabolic syndrome components',
+                        'No additional factors - focus purely on weight management',
+                        'Include mental health comorbidities (depression, anxiety)'
+                    ];
+                default:
+                    return [];
+            }
+        }
+
+        function getDiabetesSuggestions(category) {
+            switch(category) {
+                case 'objectives':
+                    return [
+                        'Glycemic control and HbA1c targets',
+                        'Treatment intensification patterns',
+                        'Medication adherence and persistence',
+                        'Cardiovascular and renal outcomes',
+                        'Healthcare costs and resource utilization'
+                    ];
+                case 'population':
+                    return [
+                        'All diabetes patients (Type 1 & 2)',
+                        'Type 2 diabetes only',
+                        'Newly diagnosed patients',
+                        'Patients with cardiovascular disease',
+                        'Patients with renal complications'
+                    ];
+                case 'market_basket':
+                    return [
+                        'Include diabetes complications (cardiovascular, renal, neuropathy)',
+                        'Focus on cardiovascular comorbidities only',
+                        'Include all major comorbidities and complications',
+                        'No additional factors - focus purely on glycemic management',
+                        'Include medication-related adverse events'
+                    ];
+                default:
+                    return [];
+            }
+        }
+
+        function getHypertensionSuggestions(category) {
+            switch(category) {
+                case 'objectives':
+                    return [
+                        'Blood pressure control and targets',
+                        'Antihypertensive medication patterns',
+                        'Treatment adherence and persistence',
+                        'Cardiovascular event prevention',
+                        'Healthcare utilization and costs'
+                    ];
+                case 'population':
+                    return [
+                        'All hypertensive patients',
+                        'Newly diagnosed hypertension',
+                        'Resistant hypertension patients',
+                        'Hypertension with comorbidities',
+                        'Specific age groups or risk categories'
+                    ];
+                case 'market_basket':
+                    return [
+                        'Include cardiovascular comorbidities and events',
+                        'Focus on target organ damage only',
+                        'Include all major comorbidities',
+                        'No additional factors - focus purely on blood pressure control',
+                        'Include medication-related adverse events'
+                    ];
+                default:
+                    return [];
+            }
+        }
+
+        function getDepressionSuggestions(category) {
+            switch(category) {
+                case 'objectives':
+                    return [
+                        'Treatment response and remission rates',
+                        'Medication switches and augmentation',
+                        'Treatment persistence and adherence',
+                        'Healthcare resource utilization',
+                        'Real-world effectiveness outcomes'
+                    ];
+                case 'population':
+                    return [
+                        'All depression patients',
+                        'Major depressive disorder only',
+                        'Treatment-resistant depression',
+                        'Specific age groups or demographics',
+                        'Depression with comorbid conditions'
+                    ];
+                case 'market_basket':
+                    return [
+                        'Include mental health comorbidities (anxiety, bipolar)',
+                        'Focus on medication-related adverse events only',
+                        'Include all psychiatric and medical comorbidities',
+                        'No additional factors - focus purely on depression treatment',
+                        'Include suicide risk and safety events'
+                    ];
+                default:
+                    return [];
+            }
+        }
+
+        function getOncologySuggestions(category) {
+            switch(category) {
+                case 'objectives':
+                    return [
+                        'Treatment patterns and sequencing',
+                        'Biomarker testing and targeted therapy use',
+                        'Time to treatment initiation',
+                        'Treatment persistence and adherence',
+                        'Real-world effectiveness outcomes'
+                    ];
+                case 'population':
+                    return [
+                        'All cancer patients',
+                        'Newly diagnosed patients only',
+                        'Metastatic patients',
+                        'Patients with specific biomarkers',
+                        'Specific age groups or demographics'
+                    ];
+                case 'market_basket':
+                    return [
+                        'Include treatment-related adverse events',
+                        'Focus on biomarker testing patterns',
+                        'Include both adverse events and comorbidities',
+                        'No additional factors - focus purely on treatment patterns',
+                        'Include supportive care and complications'
+                    ];
+                default:
+                    return [];
+            }
+        }
+
+        function getGenericSuggestions(indication, category) {
+            switch(category) {
+                case 'objectives':
+                    return [
+                        `Treatment patterns and sequencing for ${indication}`,
+                        'Time to treatment initiation and delays',
+                        'Healthcare resource utilization and costs',
+                        'Treatment persistence and adherence',
+                        'Real-world effectiveness outcomes'
+                    ];
+                case 'population':
+                    return [
+                        `All ${indication} patients`,
+                        'Newly diagnosed patients only',
+                        'Treatment-experienced patients',
+                        'Specific age groups or demographics',
+                        'Patients with relevant characteristics'
+                    ];
+                case 'market_basket':
+                    return [
+                        'Include relevant comorbidities and complications',
+                        'Focus on treatment-related adverse events',
+                        'Include both comorbidities and adverse events',
+                        'No additional factors - focus purely on treatment patterns',
+                        'Include condition-specific complications'
+                    ];
+                default:
+                    return [];
+            }
         }
 
         function getFallbackResponse(step, userMessage) {
@@ -522,23 +747,11 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             const stepContents = {
                 2: {
                     question: `Now, let's define your research objectives for ${indication}. What specific aspects of the patient journey are you most interested in exploring?`,
-                    suggestions: [
-                        `Treatment patterns and sequencing for ${indication}`,
-                        'Time to treatment initiation and delays',
-                        'Healthcare resource utilization and costs',
-                        'Treatment persistence and adherence',
-                        'Real-world effectiveness outcomes'
-                    ]
+                    suggestions: getIndicationSpecificSuggestions(indication, 'objectives')
                 },
                 3: {
                     question: `Great! Now let's define your patient population for the ${indication} analysis. Are you interested in all patients or specific subgroups?`,
-                    suggestions: [
-                        `All ${indication} patients`,
-                        'Newly diagnosed patients only',
-                        'Treatment-experienced patients',
-                        'Specific age groups or demographics',
-                        'Patients with certain biomarkers or characteristics'
-                    ]
+                    suggestions: getIndicationSpecificSuggestions(indication, 'population')
                 },
                 4: {
                     question: 'Perfect! Which claims databases would you like to include? Different databases provide different coverage perspectives.',
@@ -551,14 +764,8 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                     ]
                 },
                 5: {
-                    question: 'Excellent! Now let\'s create your market basket analysis. Are comorbidities and adverse events critical for your research?',
-                    suggestions: [
-                        'Yes, include both comorbidities and adverse events',
-                        'Focus on comorbidities only',
-                        'Focus on adverse events only',
-                        'No, focus purely on treatment patterns',
-                        'Include only treatment-emergent events'
-                    ]
+                    question: `Excellent! Now let's create your market basket analysis for ${indication}. What additional factors should we consider alongside treatment patterns?`,
+                    suggestions: getIndicationSpecificSuggestions(indication, 'market_basket')
                 },
                 6: {
                     question: 'Great! How would you like to define patient cohorts and treatment lines?',
