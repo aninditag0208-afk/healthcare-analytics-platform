@@ -6,78 +6,33 @@
     <title>Analytics Dashboard - Healthcare Analytics Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="analytics-state.js"></script>
     <script src="gemini-config.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .sidebar-bg {
-            background: linear-gradient(180deg, #e5e7eb 0%, #f9fafb 100%);
+        .gradient-bg {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%);
         }
 
-        .chat-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+        .chat-bubble {
+            max-width: 90%;
+            animation: fadeInUp 0.5s ease;
         }
 
-        .insights-panel {
-            background: rgba(255, 255, 255, 0.98);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            transition: width 0.3s ease;
-            overflow: hidden;
+        .chat-bubble.ai {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .insights-panel.collapsed {
-            width: 60px !important;
-        }
-
-        .insights-panel.collapsed .insights-title,
-        .insights-panel.collapsed .collapsible-content {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .insights-title {
-            transition: opacity 0.3s ease;
-        }
-
-        .chart-container {
-            background: white;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            height: 350px;
-            position: relative;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 280px;
-            width: 100%;
-        }
-
-        .metric-card {
+        .chat-bubble.user {
             background: linear-gradient(135deg, #2dd4bf 0%, #0d4f4f 100%);
-            color: white;
-            border-radius: 12px;
-            padding: 20px;
-            transition: transform 0.2s ease;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .chat-message {
-            animation: fadeInUp 0.3s ease;
         }
 
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -85,1356 +40,666 @@
             }
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
+        .typing-indicator {
+            animation: pulse 1.5s infinite;
         }
 
-        .collapse-btn {
-            transition: transform 0.3s ease;
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
 
-        .insights-panel.collapsed .collapse-btn {
-            transform: rotate(180deg);
+        .chat-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
 
-        .sidebar-collapsible {
-            transition: width 0.3s ease;
+        .chat-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #2dd4bf;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.1);
         }
 
-        .sidebar-collapsible.collapsed {
-            width: 60px;
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .sidebar-collapsible.collapsed .sidebar-content {
-            opacity: 0;
-            visibility: hidden;
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
         }
 
-        .sidebar-content {
-            transition: opacity 0.3s ease 0.1s;
+        .chart-canvas {
+            max-height: 400px;
+            width: 100% !important;
+            height: 400px !important;
         }
 
-        .collapsible-content {
-            transition: opacity 0.3s ease;
-            overflow: hidden;
+        .ai-panel {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .insights-panel.collapsed .collapsible-content {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .chat-collapsible-content {
-            transition: height 0.3s ease;
-            overflow: hidden;
-        }
-
-        .chat-collapsed .chat-collapsible-content {
-            height: 0 !important;
-            padding-top: 0 !important;
-            padding-bottom: 0 !important;
-        }
-
-        .breadcrumb {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .insights-vertical {
-            transition: height 0.3s ease;
-            overflow: hidden;
-        }
-
-        .insights-vertical.collapsed {
-            height: 0 !important;
-        }
-
-        .tab-button {
+        .suggested-question {
+            background: rgba(45, 212, 191, 0.1);
+            border: 1px solid rgba(45, 212, 191, 0.3);
             transition: all 0.3s ease;
         }
 
-        .tab-button.active {
-            background-color: #2dd4bf;
-            color: white;
+        .suggested-question:hover {
+            background: rgba(45, 212, 191, 0.2);
             border-color: #2dd4bf;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
         }
     </style>
 </head>
-<body class="h-screen" style="background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%);">
-    <!-- Header -->
-    <div class="flex items-center justify-between p-6 border-b border-white/10">
-        <div class="flex items-center">
-            <button class="text-white/80 hover:text-white mr-4" onclick="goBack()">
-                <i class="fas fa-arrow-left text-lg"></i>
-            </button>
-            <div class="w-8 h-8 bg-white rounded flex items-center justify-center mr-3">
-                <span class="text-gray-800 text-sm font-bold">ZS</span>
+<body class="h-screen gradient-bg flex">
+    <!-- Left Panel - AI Assistant -->
+    <div class="w-96 ai-panel flex flex-col">
+        <!-- Header -->
+        <div class="p-6 border-b border-white/10">
+            <div class="flex items-center mb-4">
+                <button class="text-white/80 hover:text-white mr-4" onclick="goBack()">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <div class="w-8 h-8 bg-white rounded flex items-center justify-center mr-3">
+                    <span class="text-gray-800 text-sm font-bold">ZS</span>
+                </div>
+                <div>
+                    <h1 class="text-white text-lg font-medium" id="dashboardTitle">Market Access Analysis</h1>
+                    <p class="text-white/60 text-sm" id="indicationName">Loading...</p>
+                </div>
             </div>
-            <span class="text-white text-lg font-medium">Healthcare Analytics Platform</span>
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-3">
+                <i class="fas fa-robot text-white text-sm"></i>
+            </div>
+            <h2 class="text-white text-lg font-medium mb-2">AI Research Assistant</h2>
+            <p class="text-white/80 text-sm">Ask me anything about the charts, data patterns, or business rules</p>
         </div>
-        <div class="flex items-center space-x-4">
-            <button class="text-white/80 hover:text-white text-xl">
-                <i class="fas fa-cog"></i>
-            </button>
-            <button class="text-white/80 hover:text-white text-xl">
-                <i class="fas fa-question-circle"></i>
-            </button>
-            <div class="w-8 h-8 bg-white/20 rounded-full"></div>
+
+        <!-- Chat Messages Area -->
+        <div class="flex-1 overflow-y-auto p-4" id="chatMessages">
+            <!-- Initial AI Message -->
+            <div class="flex items-start space-x-3 mb-4">
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-xs"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-3 text-white">
+                    <div class="flex items-center mb-2">
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="text-xs text-white/60 ml-2">Just now</span>
+                    </div>
+                    <p class="text-sm">Hello! I'm here to help you understand your analytics data. Ask me about any chart patterns, business rules, or insights you'd like to explore.</p>
+                </div>
+            </div>
+
+            <!-- Suggested Questions -->
+            <div class="space-y-2 mb-4" id="suggestedQuestions">
+                <button class="suggested-question w-full text-left px-3 py-2 rounded-lg text-sm text-teal-300 font-medium" onclick="askQuestion(this)">
+                    What drives the gaps in drug episodes?
+                </button>
+                <button class="suggested-question w-full text-left px-3 py-2 rounded-lg text-sm text-teal-300 font-medium" onclick="askQuestion(this)">
+                    Explain the market share by therapy lines
+                </button>
+                <button class="suggested-question w-full text-left px-3 py-2 rounded-lg text-sm text-teal-300 font-medium" onclick="askQuestion(this)">
+                    Which payers have the best coverage?
+                </button>
+                <button class="suggested-question w-full text-left px-3 py-2 rounded-lg text-sm text-teal-300 font-medium" onclick="askQuestion(this)">
+                    How can we improve patient access?
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="border-t border-white/10 p-4">
+            <div class="flex items-end space-x-3">
+                <div class="flex-1">
+                    <textarea
+                        id="messageInput"
+                        class="chat-input w-full rounded-lg px-3 py-2 text-white placeholder-white/60 resize-none text-sm"
+                        placeholder="Ask about charts, patterns, or insights..."
+                        rows="1"
+                        style="min-height: 36px; max-height: 100px;"
+                    ></textarea>
+                </div>
+                <button
+                    id="sendButton"
+                    onclick="sendMessage()"
+                    class="bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2 transition-colors font-medium text-sm"
+                >
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col">
-        <!-- Breadcrumb -->
-        <div class="breadcrumb px-6 py-4 border-b border-white/10">
-            <nav class="flex items-center space-x-2 text-sm text-white/80">
-                <a href="index.html" class="hover:text-white transition-colors">
-                    <i class="fas fa-home mr-1"></i>
-                    Home
-                </a>
-                <i class="fas fa-chevron-right text-white/60 text-xs"></i>
-                <a href="#" onclick="goBack()" class="hover:text-white transition-colors" id="indicationBreadcrumb">Loading...</a>
-                <i class="fas fa-chevron-right text-white/60 text-xs"></i>
-                <span class="text-white font-medium" id="analysisBreadcrumb">Loading...</span>
-            </nav>
-        </div>
-
-        <!-- Dashboard Content -->
-        <div class="flex-1 flex flex-col">
-            <!-- Main Dashboard Area -->
-            <div class="flex-1 p-6">
-                <!-- Header with Key Metrics -->
-                <div class="mb-6">
-                    <h1 class="text-3xl font-bold text-white mb-2" id="dashboardTitle">Loading...</h1>
-                    <p class="text-white/80" id="dashboardSubtitle">Analyzing patient journey data...</p>
-                </div>
-
-                <!-- Tab Navigation -->
-                <div class="mb-6">
-                    <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-                        <button class="tab-button px-4 py-2 rounded-md text-sm font-medium active" onclick="switchTab('analysis')" id="analysisTab">
-                            Analysis Report
-                        </button>
-                        <button class="tab-button px-4 py-2 rounded-md text-sm font-medium" onclick="switchTab('research')" id="researchTab">
-                            Deep Research
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Tab Content -->
-                <div id="analysisContent" class="tab-content active space-y-6">
-                    <!-- Market Access Analysis Summary -->
-                    <div class="bg-white rounded-lg border border-gray-200 p-6">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Market Access Analysis Summary</h2>
-                        <div class="grid grid-cols-4 gap-6">
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-blue-600 mb-1" id="totalPatients">2,847</div>
-                                <div class="text-sm text-gray-600">Total Patients</div>
-                                <div class="text-xs text-green-600 mt-1">↑ 12% vs Q3</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-teal-600 mb-1" id="marketShare">34.2%</div>
-                                <div class="text-sm text-gray-600">Market Share</div>
-                                <div class="text-xs text-green-600 mt-1">↑ 3.2% vs Q3</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-purple-600 mb-1" id="timeToTreatment">21</div>
-                                <div class="text-sm text-gray-600">Avg Days to Treatment</div>
-                                <div class="text-xs text-green-600 mt-1">↓ 8 days vs benchmark</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-orange-600 mb-1" id="persistence">78%</div>
-                                <div class="text-sm text-gray-600">Treatment Persistence</div>
-                                <div class="text-xs text-green-600 mt-1">Above industry avg</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts Grid - Three Main Charts -->
-                    <div class="grid grid-cols-3 gap-6">
-                        <!-- Drug Episode Claims vs Gaps -->
-                        <div class="chart-container">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Drug Episode Claims vs Gaps</h3>
-                            <div class="chart-wrapper">
-                                <canvas id="drugEpisodeChart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Market Share by Lines of Therapy -->
-                        <div class="chart-container">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Market Share by Lines of Therapy</h3>
-                            <div class="chart-wrapper">
-                                <canvas id="marketShareChart"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Payer Coverage Analysis -->
-                        <div class="chart-container">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Payer Coverage Distribution</h3>
-                            <div class="chart-wrapper">
-                                <canvas id="payerChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Drug Episodes Table -->
-                    <div class="bg-white rounded-lg border border-gray-200 p-6">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Drug Episodes by Indication</h3>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indication</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Drug Episodes</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Duration (Days)</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gap Threshold (Days)</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">75th Percentile Gap</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">95th Percentile Gap</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200" id="drugEpisodesTableBody">
-                                    <!-- Table data will be populated by JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Deep Research Tab Content -->
-                <div id="researchContent" class="tab-content space-y-6">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Market Access News -->
-                        <div class="chart-container">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Market Access Developments</h3>
-                            <div class="space-y-4" id="marketAccessNews">
-                                <!-- News items will be populated dynamically -->
-                            </div>
-                        </div>
-
-                        <!-- Patient Journey Insights -->
-                        <div class="chart-container">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Patient Journey Deep Insights</h3>
-                            <div class="space-y-4" id="patientJourneyInsights">
-                                <!-- Insights will be populated dynamically -->
-                            </div>
-                        </div>
-
-                        <!-- Payer Intelligence -->
-                        <div class="chart-container">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Payer Intelligence</h3>
-                            <div class="space-y-4" id="payerIntelligence">
-                                <!-- Payer data will be populated dynamically -->
-                            </div>
-                        </div>
-
-                        <!-- Value-Based Contracts -->
-                        <div class="chart-container">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Value-Based Contract Trends</h3>
-                            <div class="space-y-4" id="valueBasedContracts">
-                                <!-- Contract data will be populated dynamically -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- Right Panel - Charts -->
+    <div class="flex-1 overflow-y-auto bg-gray-50">
+        <!-- Charts Container -->
+        <div class="p-6 space-y-6">
+            <!-- Chart 1: Drug Episode Claims vs Gaps -->
+            <div class="chart-container">
+                <h3 class="chart-title">
+                    <i class="fas fa-pills text-blue-600 mr-2"></i>
+                    Drug Episode Claims vs Gaps Analysis
+                </h3>
+                <canvas id="episodeGapsChart" class="chart-canvas"></canvas>
             </div>
 
-            <!-- Key Insights Section (Vertically Collapsible) -->
-            <div class="border-t border-white/10 bg-black/30">
-                <div class="px-6 py-4 bg-black/40 border-b border-white/10">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-white">Key Insights</h3>
-                        <button onclick="toggleVerticalInsights()" class="text-white/80 hover:text-white" id="verticalToggleBtn">
-                            <i class="fas fa-chevron-up text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="insights-vertical p-6" id="verticalInsightsContent" style="height: 200px;">
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div class="flex items-start space-x-3">
-                                <i class="fas fa-lightbulb text-blue-500 mt-1"></i>
-                                <div>
-                                    <h4 class="font-medium text-blue-800 mb-1">Market Opportunity</h4>
-                                    <p class="text-sm text-blue-700">23% of eligible patients remain untreated, representing a significant growth opportunity.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <div class="flex items-start space-x-3">
-                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
-                                <div>
-                                    <h4 class="font-medium text-yellow-800 mb-1">Access Barrier</h4>
-                                    <p class="text-sm text-yellow-700">Prior authorization delays average 12 days across major payers.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <div class="flex items-start space-x-3">
-                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
-                                <div>
-                                    <h4 class="font-medium text-green-800 mb-1">Strong Performance</h4>
-                                    <p class="text-sm text-green-700">Treatment persistence rates exceed industry benchmarks by 15%.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                            <div class="flex items-start space-x-3">
-                                <i class="fas fa-chart-line text-purple-500 mt-1"></i>
-                                <div>
-                                    <h4 class="font-medium text-purple-800 mb-1">Growth Trend</h4>
-                                    <p class="text-sm text-purple-700">Monthly patient starts increased 18% quarter-over-quarter.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <div class="flex items-start space-x-3">
-                                <i class="fas fa-clock text-red-500 mt-1"></i>
-                                <div>
-                                    <h4 class="font-medium text-red-800 mb-1">Time to Treatment</h4>
-                                    <p class="text-sm text-red-700">Regional variations show 3-week delays in rural areas.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                            <div class="flex items-start space-x-3">
-                                <i class="fas fa-users text-gray-500 mt-1"></i>
-                                <div>
-                                    <h4 class="font-medium text-gray-800 mb-1">Patient Demographics</h4>
-                                    <p class="text-sm text-gray-700">65% female, median age 58, predominantly commercial payers.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Chat Panel (Collapsible) -->
-        <div class="chat-panel border-t border-white/10" id="chatPanel">
-            <div class="p-4 bg-black/40 border-b border-white/10">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <i class="fas fa-robot text-teal-500"></i>
-                        <h3 class="text-lg font-semibold text-white">AI Assistant</h3>
-                        <span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded-full border border-green-500/30">Online</span>
-                    </div>
-                    <button onclick="toggleChat()" class="collapse-btn text-white/80 hover:text-white" id="chatToggleBtn">
-                        <i class="fas fa-chevron-up text-sm"></i>
-                    </button>
-                </div>
+            <!-- Chart 2: Market Share by Lines of Therapy -->
+            <div class="chart-container">
+                <h3 class="chart-title">
+                    <i class="fas fa-chart-pie text-green-600 mr-2"></i>
+                    Market Share by Lines of Therapy
+                </h3>
+                <canvas id="marketShareChart" class="chart-canvas"></canvas>
             </div>
 
-            <div class="chat-collapsible-content" id="chatContent" style="height: 300px;">
-                <div class="p-4 h-64 overflow-y-auto" id="chatMessages">
-                    <div class="chat-message mb-4">
-                        <div class="flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">
-                                <i class="fas fa-robot"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="bg-gray-100 rounded-lg p-3 max-w-md">
-                                    <p class="text-sm text-gray-800">Hello! I'm here to help you analyze your data. You can ask me questions about market access, patient journeys, treatment patterns, or any other insights you need.</p>
-                                </div>
-                                <div class="text-xs text-gray-500 mt-1">Just now</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Chart 3: Payer Coverage Distribution -->
+            <div class="chart-container">
+                <h3 class="chart-title">
+                    <i class="fas fa-building text-purple-600 mr-2"></i>
+                    Payer Coverage Distribution
+                </h3>
+                <canvas id="payerCoverageChart" class="chart-canvas"></canvas>
+            </div>
 
-                <div class="p-4 border-t border-white/10">
-                    <div class="flex space-x-2">
-                        <input
-                            type="text"
-                            placeholder="Ask me anything about your analysis..."
-                            class="flex-1 border border-white/20 bg-white/10 text-white placeholder-white/60 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                            id="chatInput"
-                        >
-                        <button
-                            onclick="sendMessage()"
-                            class="bg-teal-500 hover:bg-teal-600 text-white rounded-lg px-4 py-2 transition-colors"
-                            id="sendButton"
-                        >
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
+            <!-- Chart 4: Treatment Persistence Over Time -->
+            <div class="chart-container">
+                <h3 class="chart-title">
+                    <i class="fas fa-chart-line text-orange-600 mr-2"></i>
+                    Treatment Persistence Over Time
+                </h3>
+                <canvas id="persistenceChart" class="chart-canvas"></canvas>
             </div>
         </div>
     </div>
 
     <script>
         // Global variables
-        let chatCollapsed = false;
-        let insightsCollapsed = false;
-        let sidebarCollapsed = false;
-        let geminiAPI;
+        let currentIndication = '';
+        let currentAnalysis = '';
+        let isProcessing = false;
+        let geminiAPI = null;
 
-        // Initialize dashboard
+        // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            loadSessionData();
-            generateMockData();
+            console.log('Analytics Dashboard loaded');
+
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            currentIndication = urlParams.get('indication') || sessionStorage.getItem('selectedIndication') || 'unknown';
+            currentAnalysis = urlParams.get('analysis') || sessionStorage.getItem('selectedAnalysisType') || 'market-access';
+
+            // Update page title and indication name
+            updatePageTitle();
+
+            // Initialize charts
             initializeCharts();
-            setupChatInput();
+
+            // Initialize AI
             initializeGeminiAPI();
-            setupAnalyticsState();
-            populateAnalysisList();
+
+            // Auto-resize textarea
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('input', autoResizeTextarea);
+            messageInput.addEventListener('keydown', handleKeyDown);
         });
 
+        function updatePageTitle() {
+            const indicationDisplayName = sessionStorage.getItem('indicationDisplayName') || currentIndication;
+            const analysisDisplayName = sessionStorage.getItem('analysisDisplayName') || 'Market Access Analysis';
+
+            document.getElementById('dashboardTitle').textContent = analysisDisplayName;
+            document.getElementById('indicationName').textContent = indicationDisplayName;
+            document.title = `${analysisDisplayName} - ${indicationDisplayName}`;
+        }
+
         function initializeGeminiAPI() {
-            if (typeof GeminiAPI !== 'undefined') {
-                geminiAPI = new GeminiAPI();
-                console.log('Gemini API initialized');
-            } else {
-                console.log('Gemini API not available, using mock responses');
-            }
-        }
+            const apiKey = window.GEMINI_API_KEY || null;
 
-        function setupAnalyticsState() {
-            if (window.analyticsState) {
-                // Subscribe to analytics state changes
-                window.analyticsState.subscribe((event, data) => {
-                    if (event === 'analysisAdded' || event === 'analysisUpdated') {
-                        populateAnalysisList();
+            if (apiKey) {
+                geminiAPI = {
+                    apiKey: apiKey,
+                    apiUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+
+                    async generateResponse(userMessage, context = '') {
+                        try {
+                            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    contents: [{
+                                        parts: [{
+                                            text: `You are an AI assistant helping with healthcare analytics dashboard interpretation.
+
+Healthcare Context: You're analyzing ${currentIndication} data for ${currentAnalysis}. In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing.
+
+Current Context: ${context}
+
+User question: ${userMessage}
+
+Provide helpful insights about the data patterns, business rules, or recommendations. Be concise and healthcare-focused.`
+                                        }]
+                                    }],
+                                    generationConfig: {
+                                        temperature: 0.7,
+                                        maxOutputTokens: 250,
+                                    }
+                                })
+                            });
+
+                            if (!response.ok) throw new Error('API request failed');
+
+                            const data = await response.json();
+                            return data.candidates[0].content.parts[0].text;
+                        } catch (error) {
+                            console.warn('Gemini API error:', error);
+                            return this.getFallbackResponse(userMessage);
+                        }
+                    },
+
+                    getFallbackResponse(userMessage) {
+                        const lowerMessage = userMessage.toLowerCase();
+
+                        if (lowerMessage.includes('gap') || lowerMessage.includes('episode')) {
+                            return "Drug episode gaps typically occur due to insurance coverage changes, treatment interruptions, or patient adherence issues. The chart shows patterns that can help identify intervention opportunities.";
+                        } else if (lowerMessage.includes('market share') || lowerMessage.includes('therapy')) {
+                            return "Market share analysis by therapy lines reveals treatment patterns and competitive positioning. First-line therapies usually have higher volumes, while later lines show more fragmentation.";
+                        } else if (lowerMessage.includes('payer') || lowerMessage.includes('coverage')) {
+                            return "Payer coverage varies significantly by plan type and geography. Commercial payers often have different coverage policies than Medicare/Medicaid, affecting patient access patterns.";
+                        } else if (lowerMessage.includes('persistence') || lowerMessage.includes('adherence')) {
+                            return "Treatment persistence typically declines over time due to various factors including side effects, efficacy concerns, and cost issues. Understanding these patterns helps improve patient outcomes.";
+                        } else {
+                            return "I can help explain the data patterns in these charts. Try asking about specific metrics like gaps, market share, payer coverage, or treatment persistence.";
+                        }
                     }
-                });
-
-                // Removed sidebar state loading
+                };
+                console.log('Gemini API initialized for dashboard');
+            } else {
+                console.log('No Gemini API key found, using fallback responses');
             }
-        }
-
-        // Removed analysis list functionality since sidebar is removed
-
-        function loadSessionData() {
-            const indication = sessionStorage.getItem('selectedIndication');
-            const indicationDisplayName = sessionStorage.getItem('indicationDisplayName');
-            const analysisType = sessionStorage.getItem('selectedAnalysisType');
-            const analysisDisplayName = sessionStorage.getItem('analysisDisplayName');
-
-            // Update breadcrumb and titles
-            document.getElementById('indicationBreadcrumb').textContent = indicationDisplayName || 'Unknown Indication';
-            document.getElementById('analysisBreadcrumb').textContent = analysisDisplayName || 'Unknown Analysis';
-            document.getElementById('dashboardTitle').textContent = analysisDisplayName || 'Analysis Dashboard';
-            document.getElementById('currentAnalysisTitle').textContent = `${indicationDisplayName} - ${analysisDisplayName}`;
-
-            // Update subtitle based on analysis type
-            const subtitles = {
-                'market-access': 'Analyzing payer coverage, formulary positioning, and access barriers',
-                'referral-pattern': 'Mapping referral pathways and provider networks',
-                'care-gap': 'Identifying gaps in care delivery and improvement opportunities',
-                'treatment-pathway': 'Analyzing treatment sequences and switching patterns',
-                'market-structure': 'Evaluating competitive landscape and market dynamics',
-                'persistency': 'Assessing treatment adherence and persistence patterns'
-            };
-
-            document.getElementById('dashboardSubtitle').textContent = subtitles[analysisType] || 'Analyzing patient journey data...';
-        }
-
-        function generateMockData() {
-            // Generate realistic mock data based on indication
-            const indication = sessionStorage.getItem('selectedIndication');
-            const analysisType = sessionStorage.getItem('selectedAnalysisType');
-
-            // Mock data generation logic
-            const mockData = {
-                'ovarian-cancer': {
-                    totalPatients: '2,847',
-                    marketShare: '34.2%',
-                    timeToTreatment: '21',
-                    persistence: '78%'
-                },
-                'breast-cancer': {
-                    totalPatients: '15,623',
-                    marketShare: '42.8%',
-                    timeToTreatment: '18',
-                    persistence: '85%'
-                },
-                'igan': {
-                    totalPatients: '892',
-                    marketShare: '28.6%',
-                    timeToTreatment: '35',
-                    persistence: '72%'
-                },
-                'nsclc': {
-                    totalPatients: '12,456',
-                    marketShare: '31.7%',
-                    timeToTreatment: '14',
-                    persistence: '68%'
-                }
-            };
-
-            const data = mockData[indication] || mockData['ovarian-cancer'];
-
-            document.getElementById('totalPatients').textContent = data.totalPatients;
-            document.getElementById('marketShare').textContent = data.marketShare;
-            document.getElementById('timeToTreatment').textContent = data.timeToTreatment;
-            document.getElementById('persistence').textContent = data.persistence;
-        }
-
-        function populateDrugEpisodesTable() {
-            const tableBody = document.getElementById('drugEpisodesTableBody');
-
-            const drugEpisodesData = [
-                {
-                    indication: 'Heart Failure',
-                    episodes: '1,247',
-                    avgDuration: '284',
-                    gapThreshold: '30',
-                    percentile75: '45',
-                    percentile95: '60'
-                },
-                {
-                    indication: 'Rheumatoid Arthritis',
-                    episodes: '892',
-                    avgDuration: '196',
-                    gapThreshold: '45',
-                    percentile75: '68',
-                    percentile95: '90'
-                },
-                {
-                    indication: 'Diabetes Type 2',
-                    episodes: '1,568',
-                    avgDuration: '365',
-                    gapThreshold: '30',
-                    percentile75: '45',
-                    percentile95: '60'
-                },
-                {
-                    indication: 'Hypertension',
-                    episodes: '2,134',
-                    avgDuration: '312',
-                    gapThreshold: '30',
-                    percentile75: '45',
-                    percentile95: '60'
-                },
-                {
-                    indication: 'COPD',
-                    episodes: '743',
-                    avgDuration: '198',
-                    gapThreshold: '30',
-                    percentile75: '45',
-                    percentile95: '60'
-                }
-            ];
-
-            tableBody.innerHTML = drugEpisodesData.map(row => `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-4 text-sm font-medium text-gray-900">${row.indication}</td>
-                    <td class="px-4 py-4 text-sm text-gray-900">${row.episodes}</td>
-                    <td class="px-4 py-4 text-sm text-gray-900">${row.avgDuration}</td>
-                    <td class="px-4 py-4 text-sm text-gray-900">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            ${row.gapThreshold} days
-                        </span>
-                    </td>
-                    <td class="px-4 py-4 text-sm text-gray-900">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            ${row.percentile75} days
-                        </span>
-                    </td>
-                    <td class="px-4 py-4 text-sm text-gray-900">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            ${row.percentile95} days
-                        </span>
-                    </td>
-                </tr>
-            `).join('');
         }
 
         function initializeCharts() {
-            // Chart configuration with proper responsive settings
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                },
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true,
-                            font: {
-                                size: 12
-                            }
-                        }
-                    }
-                }
-            };
+            // Register the datalabels plugin
+            Chart.register(ChartDataLabels);
 
-            // Drug Episode Claims vs Gaps Chart
-            const drugEpisodeCtx = document.getElementById('drugEpisodeChart').getContext('2d');
-            new Chart(drugEpisodeCtx, {
+            createEpisodeGapsChart();
+            createMarketShareChart();
+            createPayerCoverageChart();
+            createPersistenceChart();
+        }
+
+        function createEpisodeGapsChart() {
+            const ctx = document.getElementById('episodeGapsChart').getContext('2d');
+            new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Heart Failure', 'Rheumatoid Arthritis', 'Diabetes Type 2', 'Hypertension', 'COPD'],
+                    labels: ['Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024'],
                     datasets: [{
-                        label: 'Drug Episodes',
-                        data: [1247, 892, 1568, 2134, 743],
-                        backgroundColor: '#3B82F6',
-                        borderRadius: 4,
-                        borderSkipped: false
+                        label: 'Claims with Episodes',
+                        data: [12500, 13200, 14100, 13800, 14500],
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1
                     }, {
-                        label: 'Treatment Gaps',
-                        data: [312, 178, 294, 427, 156],
-                        backgroundColor: '#EF4444',
-                        borderRadius: 4,
-                        borderSkipped: false
+                        label: 'Claims with Gaps',
+                        data: [2100, 1950, 1750, 1600, 1400],
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                        borderColor: 'rgb(239, 68, 68)',
+                        borderWidth: 1
                     }]
                 },
                 options: {
-                    ...chartOptions,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value.toLocaleString();
+                            },
+                            font: {
+                                size: 11,
+                                weight: 'bold'
+                            }
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: {
-                                color: '#f3f4f6'
-                            },
                             ticks: {
-                                font: {
-                                    size: 11
+                                callback: function(value) {
+                                    return value.toLocaleString();
                                 }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: 11
-                                },
-                                maxRotation: 45
                             }
                         }
                     }
                 }
             });
+        }
 
-            // Market Share by Lines of Therapy Chart
-            const marketCtx = document.getElementById('marketShareChart').getContext('2d');
-            new Chart(marketCtx, {
-                type: 'line',
+        function createMarketShareChart() {
+            const ctx = document.getElementById('marketShareChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
                 data: {
                     labels: ['1st Line', '2nd Line', '3rd Line', '4th+ Line'],
                     datasets: [{
-                        label: 'Our Product',
-                        data: [34.2, 28.5, 22.1, 15.2],
-                        borderColor: '#2dd4bf',
-                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
-                        tension: 0.4,
-                        pointBackgroundColor: '#2dd4bf',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        fill: false
-                    }, {
-                        label: 'Competitor A',
-                        data: [28.5, 32.1, 35.8, 41.2],
-                        borderColor: '#8B5CF6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        tension: 0.4,
-                        pointBackgroundColor: '#8B5CF6',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        fill: false
-                    }, {
-                        label: 'Competitor B',
-                        data: [22.1, 25.3, 28.7, 32.4],
-                        borderColor: '#F59E0B',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4,
-                        pointBackgroundColor: '#F59E0B',
-                        pointBorderColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 6,
-                        fill: false
+                        data: [45, 28, 18, 9],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(34, 197, 94)',
+                            'rgb(59, 130, 246)',
+                            'rgb(168, 85, 247)',
+                            'rgb(239, 68, 68)'
+                        ],
+                        borderWidth: 2
                     }]
                 },
                 options: {
-                    ...chartOptions,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        datalabels: {
+                            formatter: function(value, context) {
+                                return value + '%';
+                            },
+                            color: 'white',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createPayerCoverageChart() {
+            const ctx = document.getElementById('payerCoverageChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Commercial', 'Medicare', 'Medicaid', 'Cash Pay', 'Other'],
+                    datasets: [{
+                        label: 'Coverage %',
+                        data: [78, 85, 62, 15, 45],
+                        backgroundColor: [
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(156, 163, 175, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(168, 85, 247)',
+                            'rgb(34, 197, 94)',
+                            'rgb(59, 130, 246)',
+                            'rgb(239, 68, 68)',
+                            'rgb(156, 163, 175)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return value + '%';
+                            },
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            max: 50,
-                            grid: {
-                                color: '#f3f4f6'
-                            },
+                            max: 100,
                             ticks: {
-                                font: {
-                                    size: 11
-                                },
                                 callback: function(value) {
                                     return value + '%';
                                 }
                             }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: 11
-                                }
-                            }
                         }
                     }
                 }
             });
+        }
 
-            // Payer Coverage Distribution Chart
-            const payerCtx = document.getElementById('payerChart').getContext('2d');
-            new Chart(payerCtx, {
-                type: 'doughnut',
+        function createPersistenceChart() {
+            const ctx = document.getElementById('persistenceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
                 data: {
-                    labels: ['Commercial', 'Medicare', 'Medicaid', 'Cash/Other'],
+                    labels: ['Month 1', 'Month 3', 'Month 6', 'Month 9', 'Month 12', 'Month 18', 'Month 24'],
                     datasets: [{
-                        data: [45.2, 32.8, 15.6, 6.4],
-                        backgroundColor: ['#0EA5E9', '#10B981', '#F59E0B', '#6B7280'],
+                        label: 'Treatment Persistence',
+                        data: [100, 85, 72, 65, 58, 48, 42],
+                        borderColor: 'rgb(245, 101, 101)',
+                        backgroundColor: 'rgba(245, 101, 101, 0.1)',
                         borderWidth: 3,
-                        borderColor: '#ffffff'
+                        fill: true,
+                        tension: 0.4
                     }]
                 },
                 options: {
-                    ...chartOptions,
-                    cutout: '65%',
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
-                        ...chartOptions.plugins,
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ' + context.parsed + '%';
+                        legend: {
+                            display: false
+                        },
+                        datalabels: {
+                            backgroundColor: 'rgba(245, 101, 101, 0.8)',
+                            borderColor: 'rgb(245, 101, 101)',
+                            borderRadius: 4,
+                            borderWidth: 1,
+                            color: 'white',
+                            formatter: function(value) {
+                                return value + '%';
+                            },
+                            font: {
+                                size: 10,
+                                weight: 'bold'
+                            },
+                            padding: 4
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
                                 }
                             }
                         }
                     }
                 }
             });
-
-            // Populate Drug Episodes Table
-            populateDrugEpisodesTable();
         }
 
-        // Removed sidebar toggle functionality
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('messageInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+        }
 
-        function toggleChat() {
-            const chatPanel = document.getElementById('chatPanel');
-            const chatContent = document.getElementById('chatContent');
-            const collapseBtn = document.getElementById('chatToggleBtn').querySelector('i');
-
-            chatCollapsed = !chatCollapsed;
-
-            if (chatCollapsed) {
-                chatPanel.classList.add('chat-collapsed');
-                chatContent.style.height = '0';
-                collapseBtn.className = 'fas fa-chevron-down text-sm';
-            } else {
-                chatPanel.classList.remove('chat-collapsed');
-                chatContent.style.height = '300px';
-                collapseBtn.className = 'fas fa-chevron-up text-sm';
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
             }
         }
 
-        function toggleVerticalInsights() {
-            const insightsContent = document.getElementById('verticalInsightsContent');
-            const toggleBtn = document.getElementById('verticalToggleBtn').querySelector('i');
-
-            insightsCollapsed = !insightsCollapsed;
-
-            if (insightsCollapsed) {
-                insightsContent.classList.add('collapsed');
-                toggleBtn.className = 'fas fa-chevron-down text-sm';
-            } else {
-                insightsContent.classList.remove('collapsed');
-                insightsContent.style.height = '200px';
-                toggleBtn.className = 'fas fa-chevron-up text-sm';
-            }
-        }
-
-        function switchTab(tabName) {
-            // Update tab buttons
-            const analysisTab = document.getElementById('analysisTab');
-            const researchTab = document.getElementById('researchTab');
-
-            if (tabName === 'analysis') {
-                analysisTab.classList.add('active');
-                researchTab.classList.remove('active');
-                document.getElementById('analysisContent').classList.add('active');
-                document.getElementById('researchContent').classList.remove('active');
-            } else {
-                researchTab.classList.add('active');
-                analysisTab.classList.remove('active');
-                document.getElementById('researchContent').classList.add('active');
-                document.getElementById('analysisContent').classList.remove('active');
-
-                // Populate deep research content if not already done
-                populateDeepResearchContent();
-            }
-        }
-
-        function populateDeepResearchContent() {
-            const indication = sessionStorage.getItem('indicationDisplayName');
-            const analysisType = sessionStorage.getItem('selectedAnalysisType');
-
-            // Market Access News
-            populateMarketAccessNews(indication, analysisType);
-
-            // Patient Journey Insights
-            populatePatientJourneyInsights(indication, analysisType);
-
-            // Payer Intelligence
-            populatePayerIntelligence(indication);
-
-            // Value-Based Contracts
-            populateValueBasedContracts(indication);
-        }
-
-        function populateMarketAccessNews(indication, analysisType) {
-            const newsContainer = document.getElementById('marketAccessNews');
-
-            const newsItems = getMarketAccessNews(indication, analysisType);
-
-            newsContainer.innerHTML = newsItems.map(item => `
-                <div class="border-l-4 border-${item.color}-500 bg-${item.color}-50 p-4 rounded-r-lg">
-                    <div class="flex items-start space-x-3">
-                        <i class="fas fa-${item.icon} text-${item.color}-500 mt-1"></i>
-                        <div class="flex-1">
-                            <h4 class="font-medium text-${item.color}-800 mb-1">${item.title}</h4>
-                            <p class="text-sm text-${item.color}-700 mb-2">${item.description}</p>
-                            <div class="text-xs text-${item.color}-600">${item.date} • ${item.source}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function populatePatientJourneyInsights(indication, analysisType) {
-            const insightsContainer = document.getElementById('patientJourneyInsights');
-
-            const insights = getPatientJourneyInsights(indication, analysisType);
-
-            insightsContainer.innerHTML = insights.map(insight => `
-                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-${insight.icon} text-blue-600 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="font-medium text-gray-800 mb-1">${insight.title}</h4>
-                            <p class="text-sm text-gray-600 mb-2">${insight.description}</p>
-                            <div class="text-xs text-gray-500">${insight.metric}</div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function populatePayerIntelligence(indication) {
-            const payerContainer = document.getElementById('payerIntelligence');
-
-            const payerData = getPayerIntelligence(indication);
-
-            payerContainer.innerHTML = payerData.map(payer => `
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h4 class="font-medium text-gray-800">${payer.name}</h4>
-                        <span class="px-2 py-1 bg-${payer.status === 'Favorable' ? 'green' : payer.status === 'Restricted' ? 'red' : 'yellow'}-100 text-${payer.status === 'Favorable' ? 'green' : payer.status === 'Restricted' ? 'red' : 'yellow'}-800 text-xs rounded-full">
-                            ${payer.status}
-                        </span>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Coverage:</span>
-                            <span class="font-medium">${payer.coverage}</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Prior Auth:</span>
-                            <span class="font-medium">${payer.priorAuth}</span>
-                        </div>
-                        <div class="text-xs text-gray-500 mt-2">${payer.notes}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function populateValueBasedContracts(indication) {
-            const contractsContainer = document.getElementById('valueBasedContracts');
-
-            const contracts = getValueBasedContracts(indication);
-
-            contractsContainer.innerHTML = contracts.map(contract => `
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-handshake text-purple-600 text-sm"></i>
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="font-medium text-gray-800 mb-1">${contract.title}</h4>
-                            <p class="text-sm text-gray-600 mb-2">${contract.description}</p>
-                            <div class="flex items-center space-x-4 text-xs text-gray-500">
-                                <span>${contract.type}</span>
-                                <span>•</span>
-                                <span>${contract.status}</span>
-                                <span>•</span>
-                                <span>${contract.date}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function setupChatInput() {
-            const chatInput = document.getElementById('chatInput');
-            chatInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
+        function askQuestion(button) {
+            const question = button.textContent.trim();
+            document.getElementById('messageInput').value = question;
+            sendMessage();
         }
 
         async function sendMessage() {
-            const chatInput = document.getElementById('chatInput');
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (!message || isProcessing) return;
+
+            isProcessing = true;
             const sendButton = document.getElementById('sendButton');
-            const message = chatInput.value.trim();
-
-            if (!message) return;
-
-            // Disable input and button
-            chatInput.disabled = true;
             sendButton.disabled = true;
             sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             // Add user message
-            addMessageToChat('user', message);
-            chatInput.value = '';
+            addUserMessage(message);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // Hide suggested questions
+            hideSuggestedQuestions();
 
             // Show typing indicator
-            addTypingIndicator();
+            showTypingIndicator();
 
             try {
-                let response;
+                let aiResponse;
                 if (geminiAPI) {
-                    // Use Gemini API
-                    response = await geminiAPI.generateResponse(message);
+                    const context = `User is viewing analytics dashboard for ${currentIndication} with focus on ${currentAnalysis}. Charts show drug episode gaps, market share by therapy lines, payer coverage, and treatment persistence data.`;
+                    aiResponse = await geminiAPI.generateResponse(message, context);
                 } else {
-                    // Fallback to mock response
-                    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
-                    response = generateAIResponse(message);
+                    aiResponse = `Thank you for asking about "${message}". I can help explain the data patterns in the charts. The analytics show important trends in patient treatment patterns and market access dynamics.`;
                 }
 
-                removeTypingIndicator();
-                addMessageToChat('ai', response);
+                hideTypingIndicator();
+                addAIMessage(aiResponse);
             } catch (error) {
-                console.error('Error generating AI response:', error);
-                removeTypingIndicator();
-                addMessageToChat('ai', 'I apologize, but I encountered an error processing your request. Please try again or rephrase your question.');
+                console.error('Error in sendMessage:', error);
+                hideTypingIndicator();
+                addAIMessage('I apologize for the error. Could you please try asking your question again?');
             } finally {
-                // Re-enable input and button
-                chatInput.disabled = false;
                 sendButton.disabled = false;
                 sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                chatInput.focus();
+                isProcessing = false;
             }
         }
 
-        function addMessageToChat(sender, message) {
+        function addUserMessage(message) {
             const chatMessages = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
-            messageDiv.className = 'chat-message mb-4';
+            messageDiv.className = 'flex items-start space-x-3 mb-4 justify-end';
 
-            if (sender === 'user') {
-                messageDiv.innerHTML = `
-                    <div class="flex items-start space-x-3 justify-end">
-                        <div class="flex-1 text-right">
-                            <div class="bg-teal-500 text-white rounded-lg p-3 max-w-md inline-block">
-                                <p class="text-sm">${message}</p>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">Just now</div>
-                        </div>
-                        <div class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white text-sm">
-                            <i class="fas fa-user"></i>
-                        </div>
+            messageDiv.innerHTML = `
+                <div class="chat-bubble user rounded-lg p-3 text-white">
+                    <div class="flex items-center mb-2 justify-end">
+                        <span class="text-xs text-white/80 mr-2">Just now</span>
+                        <span class="font-medium text-sm">You</span>
                     </div>
-                `;
-            } else {
-                messageDiv.innerHTML = `
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="bg-gray-100 rounded-lg p-3 max-w-md">
-                                <p class="text-sm text-gray-800">${message}</p>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">Just now</div>
-                        </div>
-                    </div>
-                `;
-            }
+                    <p class="text-sm">${message}</p>
+                </div>
+                <div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user text-white text-xs"></i>
+                </div>
+            `;
 
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function addTypingIndicator() {
+        function addAIMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start space-x-3 mb-4';
+
+            messageDiv.innerHTML = `
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-xs"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-3 text-white">
+                    <div class="flex items-center mb-2">
+                        <span class="font-medium text-sm">AI Assistant</span>
+                        <span class="text-xs text-white/60 ml-2">Just now</span>
+                    </div>
+                    <p class="text-sm">${message}</p>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideSuggestedQuestions() {
+            const suggestedQuestions = document.getElementById('suggestedQuestions');
+            suggestedQuestions.style.display = 'none';
+        }
+
+        function showTypingIndicator() {
             const chatMessages = document.getElementById('chatMessages');
             const typingDiv = document.createElement('div');
             typingDiv.id = 'typingIndicator';
-            typingDiv.className = 'chat-message mb-4';
+            typingDiv.className = 'flex items-start space-x-3 mb-4';
+
             typingDiv.innerHTML = `
-                <div class="flex items-start space-x-3">
-                    <div class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="flex-1">
-                        <div class="bg-gray-100 rounded-lg p-3 max-w-md">
-                            <div class="flex space-x-1">
-                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                            </div>
-                        </div>
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-xs"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-3 text-white">
+                    <div class="flex items-center space-x-2">
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full"></div>
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full" style="animation-delay: 0.2s"></div>
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full" style="animation-delay: 0.4s"></div>
+                        <span class="text-white/60 text-sm ml-2">AI is thinking...</span>
                     </div>
                 </div>
             `;
+
             chatMessages.appendChild(typingDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function removeTypingIndicator() {
+        function hideTypingIndicator() {
             const typingIndicator = document.getElementById('typingIndicator');
             if (typingIndicator) {
                 typingIndicator.remove();
             }
         }
 
-        function generateAIResponse(userMessage) {
-            // Simple mock responses - replace with actual Gemini API integration
-            const responses = {
-                'market': 'Based on the current market analysis, I can see that your product holds a 34.2% market share. The main growth opportunity lies in the 23% of eligible patients who remain untreated.',
-                'payer': 'Payer analysis shows that commercial insurance covers 45.2% of patients. Medicare accounts for 32.8%. Prior authorization is the main access barrier, causing an average delay of 12 days.',
-                'patient': 'Current patient data shows 2,847 total patients in this indication. Treatment persistence is strong at 78%, which is above industry benchmarks.',
-                'treatment': 'Treatment pathway analysis reveals that most patients (2,847) start on first-line therapy. There\'s significant drop-off by third line, with only 892 patients.',
-                'time': 'Average time to treatment is 21 days, which is 8 days better than the benchmark. However, there are regional variations with rural areas showing 3-week delays.',
-                'default': 'I can help you analyze various aspects of your data including market access, patient journeys, treatment patterns, payer coverage, and outcomes. What specific area would you like to explore?'
-            };
-
-            const lowerMessage = userMessage.toLowerCase();
-
-            for (const [key, response] of Object.entries(responses)) {
-                if (lowerMessage.includes(key)) {
-                    return response;
-                }
-            }
-
-            return responses.default;
-        }
-
         function goBack() {
             window.history.back();
-        }
-
-        // Deep Research Data Generation Functions
-        function getMarketAccessNews(indication, analysisType) {
-            const marketAccessNews = {
-                'market-access': {
-                    'Ovarian Cancer': [
-                        {
-                            title: 'UnitedHealth Expands Coverage for Ovarian Cancer Treatments',
-                            description: 'UnitedHealthcare announces broader coverage criteria for innovative ovarian cancer therapies, reducing prior authorization requirements.',
-                            color: 'green',
-                            icon: 'plus-circle',
-                            date: 'Oct 12, 2025',
-                            source: 'Healthcare Finance News'
-                        },
-                        {
-                            title: 'Anthem Implements Value-Based Contract',
-                            description: 'Anthem Blue Cross negotiates outcomes-based contract for ovarian cancer treatments with 15% cost sharing reduction.',
-                            color: 'blue',
-                            icon: 'handshake',
-                            date: 'Oct 8, 2025',
-                            source: 'Modern Healthcare'
-                        },
-                        {
-                            title: 'Medicare Coverage Decision Pending',
-                            description: 'CMS reviewing National Coverage Determination for combination ovarian cancer therapy protocols.',
-                            color: 'yellow',
-                            icon: 'clock',
-                            date: 'Oct 5, 2025',
-                            source: 'Federal Register'
-                        }
-                    ],
-                    'HER2+ Breast Cancer': [
-                        {
-                            title: 'Aetna Streamlines HER2+ Breast Cancer Access',
-                            description: 'Aetna removes step therapy requirements for first-line HER2+ breast cancer treatments following clinical evidence review.',
-                            color: 'green',
-                            icon: 'plus-circle',
-                            date: 'Oct 10, 2025',
-                            source: 'Managed Care Magazine'
-                        },
-                        {
-                            title: 'Cigna Negotiates Biosimilar Preferential Pricing',
-                            description: 'Cigna secures preferential pricing for HER2+ targeted therapy biosimilars, reducing patient copayments by 40%.',
-                            color: 'blue',
-                            icon: 'dollar-sign',
-                            date: 'Oct 7, 2025',
-                            source: 'BioPharma Dive'
-                        }
-                    ],
-                    'IgAN': [
-                        {
-                            title: 'Specialty Pharmacy Partnership Announced',
-                            description: 'Express Scripts partners with nephrology centers to improve IgAN treatment access and monitoring.',
-                            color: 'green',
-                            icon: 'plus-circle',
-                            date: 'Oct 9, 2025',
-                            source: 'Nephrology News'
-                        }
-                    ]
-                }
-            };
-
-            return marketAccessNews[analysisType]?.[indication] || [
-                {
-                    title: 'Market Access Update Available',
-                    description: 'Recent developments in payer coverage and access policies for this indication.',
-                    color: 'gray',
-                    icon: 'info-circle',
-                    date: 'Recent',
-                    source: 'Healthcare Analytics'
-                }
-            ];
-        }
-
-        function getPatientJourneyInsights(indication, analysisType) {
-            const journeyInsights = {
-                'Ovarian Cancer': [
-                    {
-                        title: 'Diagnosis Delay Patterns',
-                        description: 'Average time from symptom onset to diagnosis is 4.2 months, with significant variation by geographic region and provider type.',
-                        icon: 'clock',
-                        metric: '78% diagnosed at stage III/IV'
-                    },
-                    {
-                        title: 'Treatment Sequencing',
-                        description: 'Patients typically receive 2.3 lines of therapy on average, with 65% receiving maintenance therapy after first-line treatment.',
-                        icon: 'route',
-                        metric: '65% receive maintenance therapy'
-                    },
-                    {
-                        title: 'Specialist Referral Patterns',
-                        description: 'Gynecologic oncologists manage 82% of cases, with higher survival rates compared to general oncology care.',
-                        icon: 'user-md',
-                        metric: '18% improvement in 5-year survival'
-                    },
-                    {
-                        title: 'Geographic Disparities',
-                        description: 'Rural patients travel average 147 miles for specialized care, leading to treatment delays and reduced follow-up compliance.',
-                        icon: 'map-marker-alt',
-                        metric: '147 miles average travel distance'
-                    }
-                ],
-                'HER2+ Breast Cancer': [
-                    {
-                        title: 'Biomarker Testing Rates',
-                        description: 'HER2 testing completion rate is 94%, but time to results averages 8.5 days, potentially delaying treatment initiation.',
-                        icon: 'vial',
-                        metric: '94% testing completion rate'
-                    },
-                    {
-                        title: 'Neoadjuvant Therapy Adoption',
-                        description: 'Neoadjuvant therapy usage increased to 67% for stage II-III HER2+ breast cancer, improving surgical outcomes.',
-                        icon: 'pills',
-                        metric: '67% receive neoadjuvant therapy'
-                    },
-                    {
-                        title: 'Cardiotoxicity Monitoring',
-                        description: 'Regular cardiac monitoring during HER2-targeted therapy shows 89% adherence, preventing treatment discontinuation.',
-                        icon: 'heartbeat',
-                        metric: '89% monitoring adherence'
-                    }
-                ],
-                'IgAN': [
-                    {
-                        title: 'Diagnostic Journey',
-                        description: 'Average time from proteinuria detection to kidney biopsy is 6.8 months, with significant delays in primary care settings.',
-                        icon: 'search',
-                        metric: '6.8 months to biopsy'
-                    },
-                    {
-                        title: 'Treatment Response Monitoring',
-                        description: 'Patients require monthly monitoring for first 6 months, with 78% achieving target proteinuria reduction.',
-                        icon: 'chart-line',
-                        metric: '78% achieve target reduction'
-                    }
-                ]
-            };
-
-            return journeyInsights[indication] || [
-                {
-                    title: 'Patient Journey Analysis',
-                    description: 'Comprehensive analysis of patient care pathways and treatment patterns.',
-                    icon: 'user-circle',
-                    metric: 'Data-driven insights available'
-                }
-            ];
-        }
-
-        function getPayerIntelligence(indication) {
-            const payerData = {
-                'Ovarian Cancer': [
-                    {
-                        name: 'UnitedHealthcare',
-                        status: 'Favorable',
-                        coverage: '85%',
-                        priorAuth: 'Required',
-                        notes: 'Streamlined approval process for maintenance therapy'
-                    },
-                    {
-                        name: 'Anthem BCBS',
-                        status: 'Moderate',
-                        coverage: '78%',
-                        priorAuth: 'Required',
-                        notes: 'Step therapy requirements for combination regimens'
-                    },
-                    {
-                        name: 'Aetna',
-                        status: 'Restricted',
-                        coverage: '65%',
-                        priorAuth: 'Required',
-                        notes: 'Limited to specialized oncology centers'
-                    },
-                    {
-                        name: 'Cigna',
-                        status: 'Favorable',
-                        coverage: '82%',
-                        priorAuth: 'Not Required',
-                        notes: 'Open access for first-line treatments'
-                    }
-                ],
-                'HER2+ Breast Cancer': [
-                    {
-                        name: 'UnitedHealthcare',
-                        status: 'Favorable',
-                        coverage: '92%',
-                        priorAuth: 'Not Required',
-                        notes: 'Broad coverage for HER2+ targeted therapies'
-                    },
-                    {
-                        name: 'Anthem BCBS',
-                        status: 'Favorable',
-                        coverage: '89%',
-                        priorAuth: 'Required',
-                        notes: 'Quick approval process (48-72 hours)'
-                    },
-                    {
-                        name: 'Aetna',
-                        status: 'Moderate',
-                        coverage: '85%',
-                        priorAuth: 'Required',
-                        notes: 'Biosimilar preferencing in place'
-                    }
-                ],
-                'IgAN': [
-                    {
-                        name: 'Medicare',
-                        status: 'Favorable',
-                        coverage: '88%',
-                        priorAuth: 'Required',
-                        notes: 'Coverage under Part B with specialist requirement'
-                    },
-                    {
-                        name: 'UnitedHealthcare',
-                        status: 'Moderate',
-                        coverage: '75%',
-                        priorAuth: 'Required',
-                        notes: 'Nephrology specialist referral required'
-                    }
-                ]
-            };
-
-            return payerData[indication] || [
-                {
-                    name: 'Major Payers',
-                    status: 'Variable',
-                    coverage: 'Contact for details',
-                    priorAuth: 'Varies',
-                    notes: 'Payer coverage varies by indication'
-                }
-            ];
-        }
-
-        function getValueBasedContracts(indication) {
-            const contracts = {
-                'Ovarian Cancer': [
-                    {
-                        title: 'Anthem Outcomes-Based Agreement',
-                        description: 'Performance-based contract linking payment to progression-free survival outcomes',
-                        type: 'Outcomes-Based',
-                        status: 'Active',
-                        date: 'Sep 2025'
-                    },
-                    {
-                        title: 'Medicare Oncology Care Model',
-                        description: 'Bundled payment pilot for comprehensive ovarian cancer care management',
-                        type: 'Bundled Payment',
-                        status: 'Pilot Phase',
-                        date: 'Aug 2025'
-                    }
-                ],
-                'HER2+ Breast Cancer': [
-                    {
-                        title: 'Cigna Risk-Sharing Partnership',
-                        description: 'Shared savings model for HER2+ breast cancer treatment protocols',
-                        type: 'Risk-Sharing',
-                        status: 'Active',
-                        date: 'Oct 2025'
-                    },
-                    {
-                        title: 'Aetna Quality Metrics Program',
-                        description: 'Quality-based payments tied to cardiac safety monitoring compliance',
-                        type: 'Quality-Based',
-                        status: 'Under Negotiation',
-                        date: 'Nov 2025'
-                    }
-                ],
-                'IgAN': [
-                    {
-                        title: 'Express Scripts Specialty Outcomes',
-                        description: 'Pharmacy benefit management with outcomes tracking for kidney function',
-                        type: 'Pharmacy Benefit',
-                        status: 'Active',
-                        date: 'Sep 2025'
-                    }
-                ]
-            };
-
-            return contracts[indication] || [
-                {
-                    title: 'Value-Based Opportunities',
-                    description: 'Emerging value-based contracting opportunities in this therapeutic area',
-                    type: 'Emerging',
-                    status: 'In Development',
-                    date: 'TBD'
-                }
-            ];
         }
     </script>
 </body>

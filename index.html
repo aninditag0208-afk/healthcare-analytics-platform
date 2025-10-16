@@ -89,61 +89,66 @@
         </div>
 
         <!-- Indication Cards -->
-        <div class="grid grid-cols-5 gap-6 mb-12" id="indicationCardsContainer">
-            <!-- NSCLC Setup -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="handleNSCLCClick()" id="nsclcCard">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg font-semibold">NSCLC</h3>
-                    <div class="status-dot rounded-full" id="nsclcStatusDot"></div>
+        <div class="space-y-8">
+            <!-- Main Indication Cards Row -->
+            <div class="grid grid-cols-6 gap-4" id="indicationCardsContainer">
+                <!-- NSCLC Setup -->
+                <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="handleNSCLCClick()" id="nsclcCard">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold">NSCLC</h3>
+                        <div class="status-dot rounded-full" id="nsclcStatusDot"></div>
+                    </div>
+                    <p class="text-xs text-white/80" id="nsclcStatusText">Setup</p>
+                    <div class="absolute bottom-3 right-3 text-white/60">
+                        <i class="fas fa-sliders-h text-sm" id="nsclcIcon"></i>
+                    </div>
                 </div>
-                <p class="text-sm text-white/80" id="nsclcStatusText">Setup</p>
-                <div class="absolute bottom-4 right-4 text-white/60">
-                    <i class="fas fa-sliders-h text-lg" id="nsclcIcon"></i>
+
+                <!-- Ovarian Cancer -->
+                <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="navigateToIndication('ovarian-cancer')">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold">Ovarian Cancer</h3>
+                    </div>
+                    <p class="text-xs text-white/80">View</p>
+                    <div class="absolute bottom-3 right-3 text-white/60 group-hover:text-white transition-colors">
+                        <i class="fas fa-arrow-right text-sm"></i>
+                    </div>
+                </div>
+
+                <!-- IgAN -->
+                <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="navigateToIndication('igan')">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold">IgAN</h3>
+                    </div>
+                    <p class="text-xs text-white/80">View</p>
+                    <div class="absolute bottom-3 right-3 text-white/60 group-hover:text-white transition-colors">
+                        <i class="fas fa-arrow-right text-sm"></i>
+                    </div>
+                </div>
+
+                <!-- HER2+ Breast Cancer -->
+                <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="navigateToIndication('breast-cancer')">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-semibold">HER2+ Breast Cancer</h3>
+                    </div>
+                    <p class="text-xs text-white/80">View</p>
+                    <div class="absolute bottom-3 right-3 text-white/60 group-hover:text-white transition-colors">
+                        <i class="fas fa-arrow-right text-sm"></i>
+                    </div>
                 </div>
             </div>
 
-            <!-- Ovarian Cancer -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="navigateToIndication('ovarian-cancer')">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg font-semibold">Ovarian Cancer</h3>
-                </div>
-                <p class="text-sm text-white/80">View</p>
-                <div class="absolute bottom-4 right-4 text-white/60 group-hover:text-white transition-colors">
-                    <i class="fas fa-arrow-right text-lg"></i>
-                </div>
-            </div>
-
-            <!-- IgAN -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="navigateToIndication('igan')">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg font-semibold">IgAN</h3>
-                </div>
-                <p class="text-sm text-white/80">View</p>
-                <div class="absolute bottom-4 right-4 text-white/60 group-hover:text-white transition-colors">
-                    <i class="fas fa-arrow-right text-lg"></i>
-                </div>
-            </div>
-
-            <!-- HER2+ Breast Cancer -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="navigateToIndication('breast-cancer')">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg font-semibold">HER2+ Breast Cancer</h3>
-                </div>
-                <p class="text-sm text-white/80">View</p>
-                <div class="absolute bottom-4 right-4 text-white/60 group-hover:text-white transition-colors">
-                    <i class="fas fa-arrow-right text-lg"></i>
-                </div>
-            </div>
-
-            <!-- Add New Indication -->
-            <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer border-2 border-dashed border-white/30 hover:border-teal-300" onclick="setupNewIndication()">
-                <div class="flex items-center justify-center h-full">
-                    <div class="text-center">
-                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-teal-500/30 transition-colors">
-                            <i class="fas fa-plus text-2xl text-white/80 group-hover:text-teal-300"></i>
+            <!-- Add New Indication Row -->
+            <div class="flex justify-center">
+                <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer border-2 border-dashed border-white/30 hover:border-teal-300" onclick="setupNewIndication()">
+                    <div class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-teal-500/30 transition-colors">
+                                <i class="fas fa-plus text-2xl text-white/80 group-hover:text-teal-300"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white/80 group-hover:text-teal-300">Add New</h3>
+                            <p class="text-sm text-white/60">Setup any indication</p>
                         </div>
-                        <h3 class="text-lg font-semibold text-white/80 group-hover:text-teal-300">Add New</h3>
-                        <p class="text-sm text-white/60">Setup any indication</p>
                     </div>
                 </div>
             </div>
@@ -288,14 +293,13 @@
         function loadCustomIndications() {
             const customIndications = JSON.parse(localStorage.getItem('customIndications') || '[]');
             const container = document.getElementById('indicationCardsContainer');
-            const addNewButton = container.querySelector('.border-dashed'); // Find the "Add New" button
 
             customIndications.forEach(indication => {
                 // Check if this indication card already exists
                 if (!document.getElementById(`customCard-${indication.id}`)) {
                     const cardHTML = createCustomIndicationCard(indication);
-                    // Insert before the "Add New" button
-                    container.insertBefore(cardHTML, addNewButton);
+                    // Add to the main container
+                    container.appendChild(cardHTML);
                 }
             });
 
@@ -306,17 +310,17 @@
         function createCustomIndicationCard(indication) {
             const cardDiv = document.createElement('div');
             cardDiv.id = `customCard-${indication.id}`;
-            cardDiv.className = 'indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer';
+            cardDiv.className = 'indication-card rounded-xl p-4 h-28 relative group cursor-pointer';
             cardDiv.onclick = () => navigateToIndication(indication.id);
 
             cardDiv.innerHTML = `
                 <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-lg font-semibold">${indication.displayName}</h3>
+                    <h3 class="text-sm font-semibold">${indication.displayName}</h3>
                     <div class="status-dot bg-green-500 rounded-full"></div>
                 </div>
-                <p class="text-sm text-white/80">View</p>
-                <div class="absolute bottom-4 right-4 text-white/60 group-hover:text-white transition-colors">
-                    <i class="fas fa-arrow-right text-lg"></i>
+                <p class="text-xs text-white/80">View</p>
+                <div class="absolute bottom-3 right-3 text-white/60 group-hover:text-white transition-colors">
+                    <i class="fas fa-arrow-right text-sm"></i>
                 </div>
                 <div class="absolute top-2 right-2">
                     <button onclick="event.stopPropagation(); removeCustomIndication('${indication.id}')"
@@ -333,16 +337,8 @@
             const container = document.getElementById('indicationCardsContainer');
             const totalCards = container.children.length;
 
-            // Adjust grid columns based on number of cards
-            if (totalCards <= 3) {
-                container.className = 'grid grid-cols-3 gap-6 mb-12';
-            } else if (totalCards <= 4) {
-                container.className = 'grid grid-cols-4 gap-6 mb-12';
-            } else if (totalCards <= 5) {
-                container.className = 'grid grid-cols-5 gap-6 mb-12';
-            } else {
-                container.className = 'grid grid-cols-6 gap-6 mb-12';
-            }
+            // Keep grid at 6 columns for consistent layout, allowing overflow to next row
+            container.className = 'grid grid-cols-6 gap-4';
         }
 
         function removeCustomIndication(indicationId) {
