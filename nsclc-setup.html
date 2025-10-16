@@ -232,16 +232,52 @@
                 <div class="progress-step border border-white/20 rounded-lg p-4" id="step4">
                     <div class="flex items-center">
                         <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
-                            <i class="fas fa-route text-white/60"></i>
+                            <i class="fas fa-shopping-basket text-white/60"></i>
                         </div>
                         <div>
-                            <div class="text-white font-medium text-sm">Journey Mapping</div>
-                            <div class="text-white/60 text-xs">Configure pathways</div>
+                            <div class="text-white font-medium text-sm">Market Basket</div>
+                            <div class="text-white/60 text-xs">Comorbidities & events</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="progress-step border border-white/20 rounded-lg p-4" id="step5">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-users-cog text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Patient Cohort</div>
+                            <div class="text-white/60 text-xs">Define cohort criteria</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step6">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-pills text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Episodes & Regimens</div>
+                            <div class="text-white/60 text-xs">Treatment definitions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step7">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-route text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Journey Progression</div>
+                            <div class="text-white/60 text-xs">Line advancement logic</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step8">
                     <div class="flex items-center">
                         <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
                             <i class="fas fa-chart-line text-white/60"></i>
@@ -306,16 +342,46 @@
                 ]
             },
             3: {
-                question: "Excellent! Now let's configure your patient journey mapping. What time horizon are you most interested in analyzing?",
+                question: "Excellent! Now let's create your market basket analysis. Are comorbidities and adverse events critical for your research objectives?",
                 suggestions: [
-                    "From diagnosis to first-line treatment",
-                    "Entire treatment journey (all lines)",
-                    "First 12 months post-diagnosis",
-                    "Long-term outcomes (2+ years)",
-                    "Pre-diagnosis screening patterns"
+                    "Yes, include both comorbidities and adverse events",
+                    "Focus on comorbidities only",
+                    "Focus on adverse events only",
+                    "No, focus purely on treatment patterns",
+                    "Include only treatment-emergent adverse events"
                 ]
             },
             4: {
+                question: "Great! Now let's configure patient cohort creation. How would you like to define treatment lines and patient eligibility?",
+                suggestions: [
+                    "Standard oncology line definitions",
+                    "Intent-to-treat from first systemic therapy",
+                    "Per-protocol analysis with treatment gaps",
+                    "Include maintenance therapy as continuation",
+                    "Custom line definitions based on regimen changes"
+                ]
+            },
+            5: {
+                question: "Perfect! For episode and regimen creation, how should we define treatment episodes and combination therapies?",
+                suggestions: [
+                    "Combination regimens as single episodes",
+                    "Individual agents tracked separately",
+                    "Fixed episode duration (21/28 day cycles)",
+                    "Variable episodes based on administration",
+                    "Include supportive care medications"
+                ]
+            },
+            6: {
+                question: "Now for journey progression logic. Should specific backbone therapies be considered in line advancement decisions?",
+                suggestions: [
+                    "Yes, platinum-based chemotherapy backbones",
+                    "Include immunotherapy backbone considerations",
+                    "Consider targeted therapy resistance patterns",
+                    "Focus on combination vs. monotherapy switches",
+                    "Standard progression regardless of backbone"
+                ]
+            },
+            7: {
                 question: "Almost there! What specific analytics outputs would be most valuable for your research? I can configure multiple output types.",
                 suggestions: [
                     "Treatment pattern visualizations",
@@ -323,6 +389,40 @@
                     "Healthcare cost breakdowns",
                     "Real-world outcomes metrics",
                     "Comparative effectiveness data"
+                ]
+            }
+        };
+
+        // Follow-up questions for specific responses
+        const followUpQuestions = {
+            "comorbidities": {
+                question: "Which specific comorbidities are most critical for your NSCLC analysis?",
+                suggestions: [
+                    "COPD and respiratory comorbidities",
+                    "Cardiovascular conditions (hypertension, CAD)",
+                    "Diabetes and metabolic disorders",
+                    "Renal and hepatic impairment",
+                    "All major comorbidity categories"
+                ]
+            },
+            "adverse_events": {
+                question: "Which adverse events should we prioritize in the market basket?",
+                suggestions: [
+                    "Immune-related adverse events (irAEs)",
+                    "Hematologic toxicities",
+                    "Pulmonary toxicities (pneumonitis, ILD)",
+                    "Skin and dermatologic reactions",
+                    "All grade 3+ adverse events"
+                ]
+            },
+            "backbone_therapy": {
+                question: "Which backbone therapy considerations are most important for line progression?",
+                suggestions: [
+                    "Platinum sensitivity/resistance status",
+                    "Prior immunotherapy exposure",
+                    "EGFR TKI resistance mechanisms",
+                    "Performance status changes",
+                    "Biomarker-driven treatment selection"
                 ]
             }
         };
@@ -383,9 +483,18 @@
             // Store conversation data
             conversationData[`step${currentStep}`] = message;
 
+            // Check for follow-up questions
+            const needsFollowUp = await checkForFollowUp(message);
+
+            if (needsFollowUp) {
+                // Handle follow-up without progressing to next step
+                conversationData[`step${currentStep}_followup`] = message;
+                return;
+            }
+
             // Update progress
             updateStepProgress(currentStep, 'completed');
-            updateOverallProgress((currentStep / 5) * 100);
+            updateOverallProgress((currentStep / 8) * 100);
 
             // Hide suggestions
             hideSuggestions();
@@ -401,7 +510,7 @@
             // Move to next step
             currentStep++;
 
-            if (currentStep <= 4) {
+            if (currentStep <= 7) {
                 // Continue conversation
                 const nextFlow = conversationFlow[currentStep];
                 addAIMessage(nextFlow.question);
@@ -549,17 +658,74 @@
             document.getElementById('overallProgress').textContent = Math.round(percentage) + '%';
             document.getElementById('progressBar').style.width = percentage + '%';
 
-            if (percentage < 25) {
+            if (percentage < 12.5) {
                 document.getElementById('progressStatus').textContent = 'Defining objectives...';
-            } else if (percentage < 50) {
+            } else if (percentage < 25) {
                 document.getElementById('progressStatus').textContent = 'Configuring population...';
-            } else if (percentage < 75) {
+            } else if (percentage < 37.5) {
                 document.getElementById('progressStatus').textContent = 'Setting up data sources...';
+            } else if (percentage < 50) {
+                document.getElementById('progressStatus').textContent = 'Creating market basket...';
+            } else if (percentage < 62.5) {
+                document.getElementById('progressStatus').textContent = 'Defining patient cohorts...';
+            } else if (percentage < 75) {
+                document.getElementById('progressStatus').textContent = 'Configuring episodes...';
+            } else if (percentage < 87.5) {
+                document.getElementById('progressStatus').textContent = 'Setting progression rules...';
             } else if (percentage < 100) {
-                document.getElementById('progressStatus').textContent = 'Finalizing configuration...';
+                document.getElementById('progressStatus').textContent = 'Finalizing analytics...';
             } else {
                 document.getElementById('progressStatus').textContent = 'Setup complete!';
             }
+        }
+
+        async function checkForFollowUp(message) {
+            const lowerMessage = message.toLowerCase();
+
+            // Check if this is step 3 (market basket) and needs comorbidity/AE follow-up
+            if (currentStep === 3) {
+                if (lowerMessage.includes('comorbidities') || lowerMessage.includes('both')) {
+                    await handleFollowUpQuestion('comorbidities');
+                    return true;
+                } else if (lowerMessage.includes('adverse events') || lowerMessage.includes('events only')) {
+                    await handleFollowUpQuestion('adverse_events');
+                    return true;
+                }
+            }
+
+            // Check if this is step 6 (journey progression) and needs backbone follow-up
+            if (currentStep === 6) {
+                if (lowerMessage.includes('backbone') || lowerMessage.includes('platinum') || lowerMessage.includes('immunotherapy')) {
+                    await handleFollowUpQuestion('backbone_therapy');
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        async function handleFollowUpQuestion(type) {
+            // Hide suggestions
+            hideSuggestions();
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Simulate AI processing time
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            hideTypingIndicator();
+
+            // Show follow-up question
+            const followUp = followUpQuestions[type];
+            addAIMessage(followUp.question);
+            showSuggestions(followUp.suggestions);
+
+            // Re-enable send button
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = false;
+            sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            isProcessing = false;
         }
 
         async function completeSetup() {
@@ -567,7 +733,7 @@
             addAIMessage("Perfect! I have all the information needed to set up your NSCLC patient journey analysis. Let me process this configuration and prepare your analytics environment...");
 
             // Update all remaining steps
-            updateStepProgress(5, 'active');
+            updateStepProgress(8, 'active');
 
             // Show processing message
             showTypingIndicator();
@@ -578,17 +744,32 @@
             hideTypingIndicator();
 
             // Complete final step
-            updateStepProgress(5, 'completed');
+            updateStepProgress(8, 'completed');
             updateOverallProgress(100);
 
-            // Show completion message
-            addAIMessage("🎉 Your NSCLC analysis is now ready! I've configured a comprehensive patient journey analysis based on your requirements. You can now access detailed insights from the main dashboard.");
+            // Show completion message with summary
+            const summary = generateSetupSummary();
+            addAIMessage(`🎉 Your NSCLC analysis is now ready! I've configured a comprehensive patient journey analysis with the following specifications:\n\n${summary}\n\nYou can now access detailed insights from the main dashboard.`);
 
             // Update landing page status
             updateLandingPageStatus('completed');
 
             // Show completion button
             showCompletionButton();
+        }
+
+        function generateSetupSummary() {
+            const steps = [
+                `• Research Focus: ${conversationData.step1 || 'Treatment patterns analysis'}`,
+                `• Patient Population: ${conversationData.step2 || 'All NSCLC patients'}`,
+                `• Data Sources: ${conversationData.step3 || 'Integrated claims databases'}`,
+                `• Market Basket: ${conversationData.step4 || 'Standard comorbidity tracking'}`,
+                `• Cohort Definition: ${conversationData.step5 || 'Standard line definitions'}`,
+                `• Episode Creation: ${conversationData.step6 || 'Combination regimen tracking'}`,
+                `• Progression Logic: ${conversationData.step7 || 'Backbone therapy considerations'}`,
+                `• Analytics Output: ${conversationData.step8 || 'Comprehensive visualizations'}`
+            ];
+            return steps.join('\n');
         }
 
         function showCompletionButton() {
