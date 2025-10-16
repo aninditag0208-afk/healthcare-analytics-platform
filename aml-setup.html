@@ -291,6 +291,18 @@
                 <div class="progress-step border border-white/20 rounded-lg p-4" id="step8">
                     <div class="flex items-center">
                         <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-users-cog text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Cohort Parameters</div>
+                            <div class="text-white/60 text-xs">Define treatment lines</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step9">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
                             <i class="fas fa-chart-line text-white/60"></i>
                         </div>
                         <div>
@@ -364,8 +376,7 @@
                     "Treatment-naive patients only",
                     "Patients with molecular testing performed",
                     "Elderly patients (65+) ineligible for intensive therapy",
-                    "Fit patients eligible for intensive chemotherapy",
-                    "Patients with specific performance status (ECOG 0-1)"
+                    "Fit patients eligible for intensive chemotherapy"
                 ]
             },
             4: {
@@ -433,17 +444,6 @@
                     "Complete remission rates",
                     "Transplant referral patterns",
                     "Comparative effectiveness data"
-                ]
-            },
-            10: {
-                question: "Finally, would you like to upload any reports, research papers, or reference materials to inform the AML analysis approach?",
-                suggestions: [
-                    "Yes, I have NCCN AML guidelines to upload",
-                    "Yes, I have previous AML analysis reports",
-                    "Yes, I have relevant hematology research papers",
-                    "Yes, I have institutional AML treatment protocols",
-                    "No, proceed with standard configuration",
-                    "I'll upload materials later"
                 ]
             }
         };
@@ -634,7 +634,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
 
                 // Use Gemini API for natural conversation flow
                 let aiResponse;
-                if (geminiAPI && currentStep <= 10) {
+                if (geminiAPI && currentStep <= 9) {
                     try {
                         const stepContext = getStepContext(currentStep);
                         const context = `Current step ${currentStep}: ${stepContext}. User provided: "${message}". Acknowledge their input and progress to the next NSCLC analysis configuration step.`;
@@ -663,7 +663,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                 hideTypingIndicator();
 
                 // Special handling for final step
-                if (currentStep === 10) {
+                if (currentStep === 9) {
                     console.log('Error on final step, attempting to complete setup...');
                     try {
                         await completeSetup();
@@ -676,7 +676,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                 addAIMessage('I apologize, but I encountered an error. Let me help you continue with the setup. Could you please try again or select one of the suggested options?');
 
                 // Show suggestions for current step
-                if (currentStep <= 10) {
+                if (currentStep <= 9) {
                     const currentFlow = conversationFlow[currentStep];
                     if (currentFlow) {
                         showSuggestions(currentFlow.suggestions);
@@ -758,7 +758,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                 conversationData[`step${currentStep}`] = userInput;
                 hasCompletedSteps.add(currentStep);
                 updateStepProgress(currentStep, 'completed');
-                updateOverallProgress((hasCompletedSteps.size / 10) * 100);
+                updateOverallProgress((hasCompletedSteps.size / 9) * 100);
 
                 currentStep++;
             } catch (progressError) {
@@ -766,7 +766,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                 throw progressError;
             }
 
-            if (currentStep <= 10) {
+            if (currentStep <= 9) {
                 const nextFlow = conversationFlow[currentStep];
                 if (nextFlow) {
                     setTimeout(() => {
@@ -819,7 +819,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
 
             currentStep++;
 
-            if (currentStep <= 10) {
+            if (currentStep <= 9) {
                 const nextFlow = conversationFlow[currentStep];
                 addAIMessage(nextFlow.question);
                 showSuggestions(nextFlow.suggestions);
@@ -1035,7 +1035,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
             addAIMessage("Perfect! I have all the information needed to set up your AML patient journey analysis. Let me process this configuration and prepare your analytics environment...");
 
             // Update all remaining steps
-            updateStepProgress(10, 'active');
+            updateStepProgress(9, 'active');
 
             // Show processing message
             showTypingIndicator();
@@ -1046,7 +1046,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
             hideTypingIndicator();
 
             // Complete final step
-            updateStepProgress(10, 'completed');
+            updateStepProgress(9, 'completed');
             updateOverallProgress(100);
 
             // Show completion message with summary
@@ -1070,8 +1070,7 @@ Respond based on the validated Patient Journey Rules above. Be concise, healthca
                 `• Cohort Filtering: ${conversationData.step6 || 'No filters'}`,
                 `• Treatment Approach: ${conversationData.step7 || 'Standard progression'}`,
                 `• Cohort Parameters: ${conversationData.step8 || 'Standard line definitions'}`,
-                `• Analytics Outputs: ${conversationData.step9 || 'Treatment visualizations'}`,
-                `• Reference Materials: ${conversationData.step10 || 'Standard configuration'}`
+                `• Analytics Outputs: ${conversationData.step9 || 'Treatment visualizations'}`
             ];
             return steps.join('\n');
         }

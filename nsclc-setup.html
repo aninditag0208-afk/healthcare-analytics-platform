@@ -290,6 +290,18 @@
                 <div class="progress-step border border-white/20 rounded-lg p-4" id="step8">
                     <div class="flex items-center">
                         <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-users-cog text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Cohort Parameters</div>
+                            <div class="text-white/60 text-xs">Define treatment lines</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step9">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
                             <i class="fas fa-chart-line text-white/60"></i>
                         </div>
                         <div>
@@ -362,8 +374,7 @@
                     "All patients in the selected setting",
                     "Treatment-naive patients only",
                     "Patients with biomarker testing performed",
-                    "Elderly patients (65+)",
-                    "Specific performance status patients"
+                    "Elderly patients (65+)"
                 ]
             },
             4: {
@@ -425,16 +436,6 @@
                     "Healthcare cost breakdowns",
                     "Real-world outcomes metrics",
                     "Comparative effectiveness data"
-                ]
-            },
-            10: {
-                question: "Finally, would you like to upload any reports, research papers, or reference materials to inform the NSCLC analysis approach?",
-                suggestions: [
-                    "Yes, I have clinical guidelines to upload",
-                    "Yes, I have previous analysis reports",
-                    "Yes, I have relevant research papers",
-                    "No, proceed with standard configuration",
-                    "I'll upload materials later"
                 ]
             }
         };
@@ -616,7 +617,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
 
                 // Use Gemini API for natural conversation flow
                 let aiResponse;
-                if (geminiAPI && currentStep <= 10) {
+                if (geminiAPI && currentStep <= 9) {
                     try {
                         const stepContext = getStepContext(currentStep);
                         const context = `Current step ${currentStep}: ${stepContext}. User provided: "${message}". Acknowledge their input and progress to the next NSCLC analysis configuration step.`;
@@ -645,7 +646,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 hideTypingIndicator();
 
                 // Special handling for final step
-                if (currentStep === 10) {
+                if (currentStep === 9) {
                     console.log('Error on final step, attempting to complete setup...');
                     try {
                         await completeSetup();
@@ -658,7 +659,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 addAIMessage('I apologize, but I encountered an error. Let me help you continue with the setup. Could you please try again or select one of the suggested options?');
 
                 // Show suggestions for current step
-                if (currentStep <= 10) {
+                if (currentStep <= 9) {
                     const currentFlow = conversationFlow[currentStep];
                     if (currentFlow) {
                         showSuggestions(currentFlow.suggestions);
@@ -740,7 +741,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 conversationData[`step${currentStep}`] = userInput;
                 hasCompletedSteps.add(currentStep);
                 updateStepProgress(currentStep, 'completed');
-                updateOverallProgress((hasCompletedSteps.size / 10) * 100);
+                updateOverallProgress((hasCompletedSteps.size / 9) * 100);
 
                 currentStep++;
             } catch (progressError) {
@@ -748,7 +749,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 throw progressError;
             }
 
-            if (currentStep <= 10) {
+            if (currentStep <= 9) {
                 const nextFlow = conversationFlow[currentStep];
                 if (nextFlow) {
                     setTimeout(() => {
@@ -801,7 +802,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
 
             currentStep++;
 
-            if (currentStep <= 10) {
+            if (currentStep <= 9) {
                 const nextFlow = conversationFlow[currentStep];
                 addAIMessage(nextFlow.question);
                 showSuggestions(nextFlow.suggestions);
@@ -1017,7 +1018,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             addAIMessage("Perfect! I have all the information needed to set up your NSCLC patient journey analysis. Let me process this configuration and prepare your analytics environment...");
 
             // Update all remaining steps
-            updateStepProgress(10, 'active');
+            updateStepProgress(9, 'active');
 
             // Show processing message
             showTypingIndicator();
@@ -1028,7 +1029,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             hideTypingIndicator();
 
             // Complete final step
-            updateStepProgress(10, 'completed');
+            updateStepProgress(9, 'completed');
             updateOverallProgress(100);
 
             // Show completion message with summary
@@ -1052,8 +1053,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 `• Cohort Filtering: ${conversationData.step6 || 'No filters'}`,
                 `• Backbone Therapy: ${conversationData.step7 || 'Standard progression'}`,
                 `• Cohort Parameters: ${conversationData.step8 || 'Standard line definitions'}`,
-                `• Analytics Outputs: ${conversationData.step9 || 'Treatment visualizations'}`,
-                `• Reference Materials: ${conversationData.step10 || 'Standard configuration'}`
+                `• Analytics Outputs: ${conversationData.step9 || 'Treatment visualizations'}`
             ];
             return steps.join('\n');
         }
