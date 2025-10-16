@@ -92,7 +92,7 @@
         <div class="space-y-8">
             <!-- Main Indication Cards Row -->
             <div class="flex justify-center w-full">
-                <div class="grid grid-cols-4 gap-6 max-w-4xl" id="indicationCardsContainer">
+                <div class="flex flex-wrap justify-center gap-6 max-w-6xl" id="indicationCardsContainer">
                 <!-- NSCLC Setup -->
                 <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="handleNSCLCClick()" id="nsclcCard">
                     <div class="flex items-center justify-between mb-2">
@@ -295,15 +295,15 @@
 
         function updateGridLayout() {
             const container = document.getElementById('indicationCardsContainer');
-            const totalCards = container.children.length;
+            const cards = container.children;
 
-            // Dynamic grid layout based on number of cards for proper centering
-            if (totalCards <= 4) {
-                container.className = 'grid grid-cols-4 gap-6 max-w-4xl';
-            } else if (totalCards === 5) {
-                container.className = 'grid grid-cols-5 gap-6 max-w-5xl';
-            } else {
-                container.className = 'grid grid-cols-6 gap-4 max-w-6xl';
+            // Use flexbox for better centering - set consistent card width
+            container.className = 'flex flex-wrap justify-center gap-6 max-w-6xl';
+
+            // Set consistent width for all cards
+            for (let card of cards) {
+                card.style.width = '240px';
+                card.style.flexShrink = '0';
             }
         }
 

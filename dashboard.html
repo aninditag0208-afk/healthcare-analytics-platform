@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics Dashboard - Healthcare Analytics Platform</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -334,6 +337,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
         }
 
         function initializeCharts() {
+            console.log('Initializing payer analysis charts...');
             // Register the datalabels plugin
             Chart.register(ChartDataLabels);
 
@@ -341,9 +345,11 @@ Provide helpful insights about the data patterns, business rules, or recommendat
             createPayerBarChart();
             createMarketShareChart();
             createOOPCostChart();
+            console.log('All payer analysis charts created successfully!');
         }
 
         function createPayerDistributionChart() {
+            console.log('Creating payer distribution pie chart...');
             const ctx = document.getElementById('payerDistributionChart').getContext('2d');
             new Chart(ctx, {
                 type: 'pie',
