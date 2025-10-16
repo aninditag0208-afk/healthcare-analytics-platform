@@ -825,6 +825,9 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             const indication = conversationData.step1 || selectedIndication;
             addAIMessage(`🎉 Perfect! Your ${indication} patient journey analysis is now configured and ready. I've set up a comprehensive analysis framework based on all your specifications. You can now proceed to detailed analytics!`);
 
+            // Save the new indication to localStorage for landing page display
+            saveNewIndicationToLandingPage(indication);
+
             // Update status and show completion
             updateLandingPageStatus('completed');
 
@@ -841,6 +844,37 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 chatMessages.appendChild(buttonDiv);
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }, 1000);
+        }
+
+        function saveNewIndicationToLandingPage(indication) {
+            // Get existing custom indications from localStorage
+            const customIndications = JSON.parse(localStorage.getItem('customIndications') || '[]');
+
+            // Create indication object
+            const indicationId = indication.toLowerCase().replace(/[^a-z0-9]/g, '-');
+            const newIndication = {
+                id: indicationId,
+                name: indication,
+                displayName: indication,
+                status: 'completed',
+                setupDate: new Date().toISOString(),
+                setupData: conversationData
+            };
+
+            // Check if indication already exists
+            const existingIndex = customIndications.findIndex(ind => ind.id === indicationId);
+            if (existingIndex >= 0) {
+                // Update existing indication
+                customIndications[existingIndex] = newIndication;
+            } else {
+                // Add new indication
+                customIndications.push(newIndication);
+            }
+
+            // Save back to localStorage
+            localStorage.setItem('customIndications', JSON.stringify(customIndications));
+
+            console.log(`Saved new indication: ${indication} (${indicationId}) to landing page`);
         }
 
         function goToHome() {

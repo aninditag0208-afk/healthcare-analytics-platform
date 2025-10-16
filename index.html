@@ -89,7 +89,7 @@
         </div>
 
         <!-- Indication Cards -->
-        <div class="grid grid-cols-5 gap-6 mb-12">
+        <div class="grid grid-cols-5 gap-6 mb-12" id="indicationCardsContainer">
             <!-- NSCLC Setup -->
             <div class="indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer" onclick="handleNSCLCClick()" id="nsclcCard">
                 <div class="flex items-center justify-between mb-2">
@@ -188,9 +188,22 @@
                 'breast-cancer': 'HER2+ Breast Cancer'
             };
 
+            let displayName = indicationNames[indication];
+
+            // Check if this is a custom indication
+            if (!displayName) {
+                const customIndications = JSON.parse(localStorage.getItem('customIndications') || '[]');
+                const customIndication = customIndications.find(ind => ind.id === indication);
+                if (customIndication) {
+                    displayName = customIndication.displayName;
+                } else {
+                    displayName = indication; // Fallback
+                }
+            }
+
             // Store the selected indication in sessionStorage
             sessionStorage.setItem('selectedIndication', indication);
-            sessionStorage.setItem('indicationDisplayName', indicationNames[indication]);
+            sessionStorage.setItem('indicationDisplayName', displayName);
 
             // Initialize analytics state if available
             if (window.analyticsState) {
@@ -272,9 +285,92 @@
             }
         }
 
+        function loadCustomIndications() {
+            const customIndications = JSON.parse(localStorage.getItem('customIndications') || '[]');
+            const container = document.getElementById('indicationCardsContainer');
+            const addNewButton = container.querySelector('.border-dashed'); // Find the "Add New" button
+
+            customIndications.forEach(indication => {
+                // Check if this indication card already exists
+                if (!document.getElementById(`customCard-${indication.id}`)) {
+                    const cardHTML = createCustomIndicationCard(indication);
+                    // Insert before the "Add New" button
+                    container.insertBefore(cardHTML, addNewButton);
+                }
+            });
+
+            // Update grid layout based on number of cards
+            updateGridLayout();
+        }
+
+        function createCustomIndicationCard(indication) {
+            const cardDiv = document.createElement('div');
+            cardDiv.id = `customCard-${indication.id}`;
+            cardDiv.className = 'indication-card rounded-xl p-6 w-64 h-32 relative group cursor-pointer';
+            cardDiv.onclick = () => navigateToIndication(indication.id);
+
+            cardDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-lg font-semibold">${indication.displayName}</h3>
+                    <div class="status-dot bg-green-500 rounded-full"></div>
+                </div>
+                <p class="text-sm text-white/80">View</p>
+                <div class="absolute bottom-4 right-4 text-white/60 group-hover:text-white transition-colors">
+                    <i class="fas fa-arrow-right text-lg"></i>
+                </div>
+                <div class="absolute top-2 right-2">
+                    <button onclick="event.stopPropagation(); removeCustomIndication('${indication.id}')"
+                            class="text-white/40 hover:text-red-400 transition-colors text-xs">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            return cardDiv;
+        }
+
+        function updateGridLayout() {
+            const container = document.getElementById('indicationCardsContainer');
+            const totalCards = container.children.length;
+
+            // Adjust grid columns based on number of cards
+            if (totalCards <= 3) {
+                container.className = 'grid grid-cols-3 gap-6 mb-12';
+            } else if (totalCards <= 4) {
+                container.className = 'grid grid-cols-4 gap-6 mb-12';
+            } else if (totalCards <= 5) {
+                container.className = 'grid grid-cols-5 gap-6 mb-12';
+            } else {
+                container.className = 'grid grid-cols-6 gap-6 mb-12';
+            }
+        }
+
+        function removeCustomIndication(indicationId) {
+            if (confirm('Are you sure you want to remove this indication?')) {
+                // Remove from localStorage
+                const customIndications = JSON.parse(localStorage.getItem('customIndications') || '[]');
+                const filteredIndications = customIndications.filter(ind => ind.id !== indicationId);
+                localStorage.setItem('customIndications', JSON.stringify(filteredIndications));
+
+                // Remove from DOM
+                const cardElement = document.getElementById(`customCard-${indicationId}`);
+                if (cardElement) {
+                    cardElement.remove();
+                }
+
+                // Update grid layout
+                updateGridLayout();
+
+                console.log(`Removed custom indication: ${indicationId}`);
+            }
+        }
+
         // Add some interactive effects
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Healthcare Analytics Platform loaded successfully!');
+
+            // Load custom indications
+            loadCustomIndications();
 
             // Update NSCLC status on page load
             updateNSCLCStatus();
