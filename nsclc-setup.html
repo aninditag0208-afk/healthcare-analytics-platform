@@ -143,6 +143,12 @@
                     Treatment patterns and sequencing
                 </button>
                 <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Market access analysis
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Care gaps analysis
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
                     Time to treatment initiation
                 </button>
                 <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
@@ -381,13 +387,14 @@
                 ]
             },
             6: {
-                question: "Great! Now let's configure patient cohort creation. How would you like to define treatment lines and patient eligibility?",
+                question: "Do you want to filter the patient cohort based on age or specific prior treatment or exclude any similar diagnosis codes?",
                 suggestions: [
-                    "Standard oncology line definitions",
-                    "Intent-to-treat from first systemic therapy",
-                    "Per-protocol analysis with treatment gaps",
-                    "Include maintenance therapy as continuation",
-                    "Custom line definitions based on regimen changes"
+                    "Filter by age groups (e.g., 65+ elderly patients)",
+                    "Exclude patients with prior cancer treatments",
+                    "Exclude similar diagnosis codes (other lung diseases)",
+                    "Include only treatment-naive patients",
+                    "No filters - include all NSCLC patients",
+                    "Custom filtering based on specific criteria"
                 ]
             },
             7: {
