@@ -68,29 +68,31 @@
         .chart-container {
             background: white;
             border-radius: 16px;
-            padding: 20px;
+            padding: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            height: 380px;
-            min-height: 380px;
+            height: 320px;
+            min-height: 320px;
+            max-height: 320px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
         .chart-title {
-            font-size: 1.125rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #1f2937;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #e5e7eb;
+            flex-shrink: 0;
         }
 
         .chart-canvas {
-            max-height: 280px;
+            max-height: 220px;
             width: 100% !important;
-            height: 280px !important;
+            height: 220px !important;
             flex: 1;
             min-height: 0;
         }
