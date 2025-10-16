@@ -71,6 +71,8 @@
             padding: 24px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            height: 400px;
+            min-height: 400px;
         }
 
         .chart-title {
@@ -83,9 +85,9 @@
         }
 
         .chart-canvas {
-            max-height: 400px;
+            max-height: 320px;
             width: 100% !important;
-            height: 400px !important;
+            height: 320px !important;
         }
 
         .ai-panel {
@@ -189,7 +191,7 @@
     <!-- Right Panel - Charts -->
     <div class="flex-1 overflow-y-auto bg-gray-50">
         <!-- Charts Container -->
-        <div class="p-6 space-y-6">
+        <div class="p-6 grid grid-cols-2 gap-6">
             <!-- Chart 1: Payer Distribution Pie Chart -->
             <div class="chart-container">
                 <h3 class="chart-title">
@@ -477,7 +479,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                         tension: 0.4
                     }, {
                         label: 'Caremark',
-                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        data: [28, 25, 20, 18, 22, 25, 30, 32, 20, 25, 28, 20],
                         borderColor: 'rgba(147, 51, 234, 1)',
                         backgroundColor: 'rgba(147, 51, 234, 0.1)',
                         borderWidth: 3,
@@ -486,7 +488,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                         tension: 0.4
                     }, {
                         label: 'Express Scripts',
-                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        data: [18, 15, 10, 8, 12, 15, 18, 20, 12, 15, 18, 12],
                         borderColor: 'rgba(59, 130, 246, 1)',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderWidth: 3,
