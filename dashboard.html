@@ -401,15 +401,24 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 80,
+                            top: 10,
+                            bottom: 10
+                        }
+                    },
                     plugins: {
                         legend: {
                             position: 'right',
                             labels: {
                                 usePointStyle: true,
-                                padding: 15,
+                                padding: 10,
                                 font: {
-                                    size: 12
-                                }
+                                    size: 10
+                                },
+                                boxWidth: 12
                             }
                         },
                         datalabels: {
@@ -418,7 +427,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                             },
                             color: 'white',
                             font: {
-                                size: 12,
+                                size: 11,
                                 weight: 'bold'
                             }
                         }
@@ -445,6 +454,14 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 10,
+                            top: 10,
+                            bottom: 20
+                        }
+                    },
                     plugins: {
                         legend: {
                             display: false
@@ -466,16 +483,36 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                         x: {
                             beginAtZero: true,
                             max: 100,
+                            display: true,
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
                             ticks: {
+                                display: true,
                                 callback: function(value) {
                                     return value + '%';
+                                },
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Coverage Percentage',
+                                font: {
+                                    size: 11
                                 }
                             }
                         },
                         y: {
+                            display: true,
+                            grid: {
+                                display: false
+                            },
                             ticks: {
                                 font: {
-                                    size: 12
+                                    size: 10
                                 }
                             }
                         }
