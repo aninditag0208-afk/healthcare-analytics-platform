@@ -616,14 +616,20 @@ Respond appropriately to help guide the conversation forward. Be concise, health
 
                 // Use Gemini API for natural conversation flow
                 let aiResponse;
-                if (geminiAPI) {
-                    const stepContext = getStepContext(currentStep);
-                    const context = `Current step ${currentStep}: ${stepContext}. User provided: "${message}". Acknowledge their input and progress to the next NSCLC analysis configuration step.`;
+                if (geminiAPI && currentStep <= 10) {
+                    try {
+                        const stepContext = getStepContext(currentStep);
+                        const context = `Current step ${currentStep}: ${stepContext}. User provided: "${message}". Acknowledge their input and progress to the next NSCLC analysis configuration step.`;
 
-                    showTypingIndicator();
-                    aiResponse = await geminiAPI.generateResponse(message, context);
-                    hideTypingIndicator();
-                    addAIMessage(aiResponse);
+                        showTypingIndicator();
+                        aiResponse = await geminiAPI.generateResponse(message, context);
+                        hideTypingIndicator();
+                        addAIMessage(aiResponse);
+                    } catch (geminiError) {
+                        console.error('Gemini API error:', geminiError);
+                        hideTypingIndicator();
+                        addAIMessage(`Great! I've noted your preferences: "${message}". Let's continue with the next aspect of your NSCLC analysis.`);
+                    }
                 } else {
                     // Fallback to simple acknowledgment
                     showTypingIndicator();
@@ -729,21 +735,40 @@ Respond appropriately to help guide the conversation forward. Be concise, health
         async function progressToNextStep(userInput) {
             console.log(`Progressing from step ${currentStep} to step ${currentStep + 1}`);
 
-            // Store the user input and continue to next step
-            conversationData[`step${currentStep}`] = userInput;
-            hasCompletedSteps.add(currentStep);
-            updateStepProgress(currentStep, 'completed');
-            updateOverallProgress((hasCompletedSteps.size / 10) * 100);
+            try {
+                // Store the user input and continue to next step
+                conversationData[`step${currentStep}`] = userInput;
+                hasCompletedSteps.add(currentStep);
+                updateStepProgress(currentStep, 'completed');
+                updateOverallProgress((hasCompletedSteps.size / 10) * 100);
 
-            currentStep++;
+                currentStep++;
+            } catch (progressError) {
+                console.error('Error in step progression:', progressError);
+                throw progressError;
+            }
 
             if (currentStep <= 10) {
                 const nextFlow = conversationFlow[currentStep];
-                setTimeout(() => {
-                    addAIMessage(nextFlow.question);
-                    showSuggestions(nextFlow.suggestions);
-                    updateStepProgress(currentStep, 'active');
-                }, 1000);
+                if (nextFlow) {
+                    setTimeout(() => {
+                        addAIMessage(nextFlow.question);
+                        showSuggestions(nextFlow.suggestions);
+                        updateStepProgress(currentStep, 'active');
+                    }, 1000);
+                } else {
+                    console.error(`No conversation flow found for step ${currentStep}`);
+                    setTimeout(async () => {
+                        try {
+                            await completeSetup();
+                        } catch (error) {
+                            console.error('Error in fallback completion:', error);
+                            addAIMessage("🎉 Your NSCLC analysis setup is complete! You can now proceed to the analysis dashboard.");
+                            updateLandingPageStatus('completed');
+                            showCompletionButton();
+                        }
+                    }, 1000);
+                }
             } else {
                 setTimeout(async () => {
                     try {
