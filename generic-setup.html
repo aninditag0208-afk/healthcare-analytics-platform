@@ -453,9 +453,9 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 currentStep++;
 
                 // Continue conversation flow
-                if (currentStep <= 9) {
+                if (currentStep <= 11) {
                     updateStepProgress(currentStep, 'active');
-                    updateOverallProgress((currentStep - 1) / 9 * 100);
+                    updateOverallProgress((currentStep - 1) / 11 * 100);
 
                     // Get next step question and suggestions
                     const nextStep = getNextStepContent(currentStep);
@@ -555,6 +555,14 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                         'Specific age groups (pediatric, elderly)',
                         'Patients by obesity class (I, II, III)'
                     ];
+                case 'biomarkers_population':
+                    return [
+                        'All obesity patients regardless of metabolic markers',
+                        'Focus on patients with specific BMI categories',
+                        'Stratify by diabetes and metabolic syndrome status',
+                        'Include both tested and untested metabolic panels',
+                        'No biomarker stratification needed for obesity'
+                    ];
                 case 'market_basket':
                     return [
                         'Include obesity-related comorbidities (diabetes, hypertension, sleep apnea)',
@@ -585,6 +593,14 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                         'Newly diagnosed patients',
                         'Patients with cardiovascular disease',
                         'Patients with renal complications'
+                    ];
+                case 'biomarkers_population':
+                    return [
+                        'All diabetes patients regardless of genetic testing',
+                        'Focus on patients with specific HbA1c ranges',
+                        'Stratify by insulin resistance markers',
+                        'Include both Type 1 and Type 2 molecular profiles',
+                        'No genetic biomarker stratification needed'
                     ];
                 case 'market_basket':
                     return [
@@ -679,6 +695,14 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                         'Patients with specific biomarkers',
                         'Specific age groups or demographics'
                     ];
+                case 'biomarkers_population':
+                    return [
+                        'Include all patients regardless of biomarker testing',
+                        'Focus on biomarker-positive patients only',
+                        'Stratify by biomarker testing patterns',
+                        'Include both tested and untested patient populations',
+                        'Focus on specific molecular subtypes'
+                    ];
                 case 'market_basket':
                     return [
                         'Include treatment-related adverse events',
@@ -710,6 +734,14 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                         'Specific age groups or demographics',
                         'Patients with relevant characteristics'
                     ];
+                case 'biomarkers_population':
+                    return [
+                        `All ${indication} patients regardless of biomarker status`,
+                        'Patients with specific molecular characteristics',
+                        'Focus on biomarker-defined subgroups',
+                        'Include both tested and untested patients',
+                        'Stratify by biomarker testing patterns'
+                    ];
                 case 'market_basket':
                     return [
                         'Include relevant comorbidities and complications',
@@ -720,6 +752,28 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                     ];
                 default:
                     return [];
+            }
+        }
+
+        function getBiomarkerQuestion(indication) {
+            const lowerIndication = indication.toLowerCase();
+
+            if (lowerIndication.includes('nsclc') || lowerIndication.includes('lung cancer')) {
+                return `For NSCLC analysis, are specific biomarkers important for your research focus? Key biomarkers include EGFR mutations, ALK rearrangements, ROS1, PD-L1 expression, and KRAS mutations.`;
+            } else if (lowerIndication.includes('breast cancer')) {
+                return `For breast cancer analysis, which biomarkers are critical for your patient stratification? Key markers include HER2 status, hormone receptor status (ER/PR), and BRCA mutations.`;
+            } else if (lowerIndication.includes('colorectal') || lowerIndication.includes('crc')) {
+                return `For colorectal cancer, are you interested in specific biomarker-driven treatment patterns? Important biomarkers include KRAS, NRAS, BRAF mutations, and microsatellite instability (MSI).`;
+            } else if (lowerIndication.includes('melanoma')) {
+                return `For melanoma analysis, which biomarkers should we consider for treatment stratification? Key biomarkers include BRAF mutations, NRAS mutations, and PD-L1 expression.`;
+            } else if (lowerIndication.includes('ovarian')) {
+                return `For ovarian cancer, are BRCA mutations and homologous recombination deficiency (HRD) status important for your analysis focus?`;
+            } else if (lowerIndication.includes('prostate')) {
+                return `For prostate cancer, should we consider biomarkers like AR-V7, BRCA mutations, or PSA dynamics in the treatment pathway analysis?`;
+            } else if (lowerIndication.includes('cancer') || lowerIndication.includes('oncology') || lowerIndication.includes('tumor') || lowerIndication.includes('carcinoma') || lowerIndication.includes('sarcoma') || lowerIndication.includes('lymphoma') || lowerIndication.includes('leukemia')) {
+                return `For ${indication} analysis, are there specific biomarkers or molecular characteristics that are important for treatment selection and patient stratification in your research?`;
+            } else {
+                return `For ${indication} analysis, are there any specific diagnostic markers, genetic factors, or patient characteristics that are important for treatment stratification in your research?`;
             }
         }
 
@@ -746,14 +800,28 @@ Respond appropriately to help guide the conversation forward. Be concise, health
 
             const stepContents = {
                 2: {
-                    question: `Now, let's define your research objectives for ${indication}. What specific aspects of the patient journey are you most interested in exploring?`,
-                    suggestions: getIndicationSpecificSuggestions(indication, 'objectives')
+                    question: `Before we dive into the analysis setup for ${indication}, would you like to upload any reports, research papers, or reference materials that could inform our analysis approach?`,
+                    suggestions: [
+                        'Yes, I have relevant materials to upload',
+                        'No, proceed with standard configuration',
+                        'I have clinical guidelines to reference',
+                        'I have market research reports',
+                        'I have previous analysis results to compare'
+                    ]
                 },
                 3: {
-                    question: `Great! Now let's define your patient population for the ${indication} analysis. Are you interested in all patients or specific subgroups?`,
-                    suggestions: getIndicationSpecificSuggestions(indication, 'population')
+                    question: `${getBiomarkerQuestion(indication)}`,
+                    suggestions: getIndicationSpecificSuggestions(indication, 'biomarkers_population')
                 },
                 4: {
+                    question: `Great! Now let's define your research objectives for ${indication}. What specific aspects of the patient journey are you most interested in exploring?`,
+                    suggestions: getIndicationSpecificSuggestions(indication, 'objectives')
+                },
+                5: {
+                    question: `Excellent! Now let's define your patient population for the ${indication} analysis. Are you interested in all patients or specific subgroups?`,
+                    suggestions: getIndicationSpecificSuggestions(indication, 'population')
+                },
+                6: {
                     question: 'Perfect! Which claims databases would you like to include? Different databases provide different coverage perspectives.',
                     suggestions: [
                         'Commercial claims (Optum, IQVIA)',
@@ -763,11 +831,11 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                         'All available databases'
                     ]
                 },
-                5: {
+                7: {
                     question: `Excellent! Now let's create your market basket analysis for ${indication}. What additional factors should we consider alongside treatment patterns?`,
                     suggestions: getIndicationSpecificSuggestions(indication, 'market_basket')
                 },
-                6: {
+                8: {
                     question: 'Great! How would you like to define patient cohorts and treatment lines?',
                     suggestions: [
                         'Standard line definitions for this indication',
@@ -777,7 +845,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                         'Custom definitions based on clinical practice'
                     ]
                 },
-                7: {
+                9: {
                     question: 'Perfect! For episodes and regimens, how should we define treatment episodes?',
                     suggestions: [
                         'Combination regimens as single episodes',
@@ -787,7 +855,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                         'Include supportive care medications'
                     ]
                 },
-                8: {
+                10: {
                     question: 'Excellent! For journey progression, what factors should drive line advancement decisions?',
                     suggestions: [
                         'Standard progression regardless of prior therapy',
@@ -797,7 +865,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                         'Focus on treatment switches vs. discontinuations'
                     ]
                 },
-                9: {
+                11: {
                     question: 'Almost there! What specific analytics outputs would be most valuable for your research?',
                     suggestions: [
                         'Treatment pattern visualizations',
