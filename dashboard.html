@@ -305,9 +305,32 @@
                         try {
                             // Get relevant knowledge from Patient Journey Rules based on current indication
                             let knowledgeContext = '';
-                            if (window.PatientJourneyKnowledge && (currentIndication === 'AML' || currentIndication === 'HER2+ Breast Cancer')) {
-                                const indicationKey = currentIndication === 'AML' ? 'aml' : 'her2_breast_cancer';
-                                knowledgeContext = window.PatientJourneyKnowledge.generateLLMContext(indicationKey, userMessage) || '';
+                            if (window.PatientJourneyKnowledge) {
+                                // Map URL parameter values to knowledge base keys
+                                let indicationKey = '';
+                                let indicationDisplayName = '';
+
+                                switch(currentIndication) {
+                                    case 'aml':
+                                        indicationKey = 'aml';
+                                        indicationDisplayName = 'AML';
+                                        break;
+                                    case 'breast-cancer':
+                                        indicationKey = 'her2_breast_cancer';
+                                        indicationDisplayName = 'HER2+ Breast Cancer';
+                                        break;
+                                    case 'nsclc':
+                                        indicationKey = 'nsclc';
+                                        indicationDisplayName = 'NSCLC';
+                                        break;
+                                    default:
+                                        console.log('Unknown indication:', currentIndication);
+                                }
+
+                                if (indicationKey) {
+                                    knowledgeContext = window.PatientJourneyKnowledge.generateLLMContext(indicationKey, userMessage) || '';
+                                    console.log('Knowledge context generated for', indicationDisplayName, ':', knowledgeContext ? 'Success' : 'No context');
+                                }
                             }
 
                             const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
@@ -318,40 +341,66 @@
                                 body: JSON.stringify({
                                     contents: [{
                                         parts: [{
-                                            text: `You are an AI assistant helping with healthcare analytics dashboard interpretation using validated clinical rules.
+                                            text: `You are an AI assistant helping with healthcare analytics dashboard interpretation using validated Patient Journey Rules from clinical documentation.
 
 Healthcare Context: You're analyzing ${currentIndication} data for ${currentAnalysis}. In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing.
 
-${knowledgeContext}
+${knowledgeContext ? `VALIDATED PATIENT JOURNEY RULES:\n${knowledgeContext}` : 'Note: Patient Journey Rules data not available for this indication.'}
 
 Current Dashboard Context: ${context}
 
-User question: ${userMessage}
+User question: "${userMessage}"
 
-Provide helpful insights about the data patterns, business rules, or recommendations based on the validated Patient Journey Rules above. Reference specific drugs, treatment phases, or progression rules when relevant for ${currentIndication}. Be concise and healthcare-focused.`
+Instructions:
+- If Patient Journey Rules are available above, reference them specifically when answering about treatment progression, drug classifications, or line advancement
+- For questions about "treatment progression rules" or "detailed progression", provide the exact rules from the Patient Journey Rules document
+- Reference specific drugs, treatment phases, backbone therapies, and progression criteria when available
+- If rules aren't available, provide general insights about the dashboard data
+- Be concise and healthcare-focused, focusing on actionable insights`
                                         }]
                                     }],
                                     generationConfig: {
                                         temperature: 0.7,
-                                        maxOutputTokens: 250,
+                                        maxOutputTokens: userMessage.toLowerCase().includes('treatment progression') || userMessage.toLowerCase().includes('progression rules') ? 500 : 250,
                                     }
                                 })
                             });
 
-                            if (!response.ok) throw new Error('API request failed');
+                            if (!response.ok) {
+                                console.error('Gemini API response not ok:', response.status, response.statusText);
+                                throw new Error(`API request failed: ${response.status}`);
+                            }
 
                             const data = await response.json();
+
+                            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts[0]) {
+                                console.error('Unexpected API response structure:', data);
+                                throw new Error('Invalid API response structure');
+                            }
+
                             return data.candidates[0].content.parts[0].text;
                         } catch (error) {
-                            console.warn('Gemini API error:', error);
-                            return this.getFallbackResponse(userMessage);
+                            console.error('Gemini API error details:', {
+                                error: error.message,
+                                indication: currentIndication,
+                                hasKnowledge: !!knowledgeContext,
+                                userMessage: userMessage
+                            });
+                            return this.getFallbackResponse(userMessage, knowledgeContext);
                         }
                     },
 
-                    getFallbackResponse(userMessage) {
+                    getFallbackResponse(userMessage, knowledgeContext = '') {
                         const lowerMessage = userMessage.toLowerCase();
 
-                        if (lowerMessage.includes('gap') || lowerMessage.includes('episode')) {
+                        // Check if user is asking about treatment progression rules specifically
+                        if (lowerMessage.includes('treatment progression') || lowerMessage.includes('progression rules') || lowerMessage.includes('line advancement')) {
+                            if (knowledgeContext) {
+                                return `Based on the Patient Journey Rules document, here are the treatment progression criteria for ${currentIndication}. However, I encountered an issue accessing the full details. Please try asking more specific questions about drug classifications, backbone therapies, or line advancement criteria.`;
+                            } else {
+                                return `Treatment progression rules for ${currentIndication} are not currently available in the knowledge base. The dashboard shows market access patterns, but clinical progression rules would need to be referenced from the Patient Journey Rules documentation.`;
+                            }
+                        } else if (lowerMessage.includes('gap') || lowerMessage.includes('episode')) {
                             return "Drug episode gaps typically occur due to insurance coverage changes, treatment interruptions, or patient adherence issues. The chart shows patterns that can help identify intervention opportunities.";
                         } else if (lowerMessage.includes('market share') || lowerMessage.includes('therapy')) {
                             return "Market share analysis by therapy lines reveals treatment patterns and competitive positioning. First-line therapies usually have higher volumes, while later lines show more fragmentation.";
@@ -360,7 +409,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                         } else if (lowerMessage.includes('persistence') || lowerMessage.includes('adherence')) {
                             return "Treatment persistence typically declines over time due to various factors including side effects, efficacy concerns, and cost issues. Understanding these patterns helps improve patient outcomes.";
                         } else {
-                            return "I can help explain the data patterns in these charts. Try asking about specific metrics like gaps, market share, payer coverage, or treatment persistence.";
+                            return `I can help explain the ${currentIndication} data patterns in these charts. Try asking about treatment progression rules, gaps, market share, payer coverage, or specific drug information.`;
                         }
                     }
                 };
