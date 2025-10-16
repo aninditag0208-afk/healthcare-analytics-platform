@@ -68,11 +68,14 @@
         .chart-container {
             background: white;
             border-radius: 16px;
-            padding: 24px;
+            padding: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            height: 400px;
-            min-height: 400px;
+            height: 380px;
+            min-height: 380px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .chart-title {
@@ -85,9 +88,18 @@
         }
 
         .chart-canvas {
-            max-height: 320px;
+            max-height: 280px;
             width: 100% !important;
-            height: 320px !important;
+            height: 280px !important;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .chart-content {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            overflow: hidden;
         }
 
         .ai-panel {
@@ -191,14 +203,16 @@
     <!-- Right Panel - Charts -->
     <div class="flex-1 overflow-y-auto bg-gray-50">
         <!-- Charts Container -->
-        <div class="p-6 grid grid-cols-2 gap-6">
+        <div class="p-6 grid grid-cols-2 gap-6" id="chartsContainer">
             <!-- Chart 1: Payer Distribution Pie Chart -->
             <div class="chart-container">
                 <h3 class="chart-title">
                     <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
                     Distribution of treated patients within top 5 'Commercial' payers
                 </h3>
-                <canvas id="payerDistributionChart" class="chart-canvas"></canvas>
+                <div class="chart-content">
+                    <canvas id="payerDistributionChart" class="chart-canvas"></canvas>
+                </div>
             </div>
 
             <!-- Chart 2: Payer Distribution Bar Chart -->
@@ -207,7 +221,9 @@
                     <i class="fas fa-chart-bar text-green-600 mr-2"></i>
                     Distribution of treated patients within top 5 'Commercial' payers
                 </h3>
-                <canvas id="payerBarChart" class="chart-canvas"></canvas>
+                <div class="chart-content">
+                    <canvas id="payerBarChart" class="chart-canvas"></canvas>
+                </div>
             </div>
 
             <!-- Chart 3: Commercial TRx Market Share -->
@@ -216,7 +232,9 @@
                     <i class="fas fa-chart-line text-purple-600 mr-2"></i>
                     Commercial TRx Market Share
                 </h3>
-                <canvas id="marketShareChart" class="chart-canvas"></canvas>
+                <div class="chart-content">
+                    <canvas id="marketShareChart" class="chart-canvas"></canvas>
+                </div>
             </div>
 
             <!-- Chart 4: OOP Cost by Payer -->
@@ -225,7 +243,9 @@
                     <i class="fas fa-dollar-sign text-orange-600 mr-2"></i>
                     OOP Cost by Payer
                 </h3>
-                <canvas id="oopCostChart" class="chart-canvas"></canvas>
+                <div class="chart-content">
+                    <canvas id="oopCostChart" class="chart-canvas"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -568,7 +588,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                     datasets: [{
                         label: 'Aetna',
-                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        data: [45, 42, 38, 35, 40, 43, 46, 48, 40, 42, 44, 38],
                         borderColor: 'rgba(45, 212, 191, 1)',
                         backgroundColor: 'rgba(45, 212, 191, 0.1)',
                         borderWidth: 3,
@@ -577,7 +597,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                         tension: 0.4
                     }, {
                         label: 'Caremark',
-                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        data: [25, 22, 18, 15, 20, 23, 26, 28, 20, 22, 24, 18],
                         borderColor: 'rgba(147, 51, 234, 1)',
                         backgroundColor: 'rgba(147, 51, 234, 0.1)',
                         borderWidth: 3,
@@ -586,7 +606,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                         tension: 0.4
                     }, {
                         label: 'Express Scripts',
-                        data: [24, 20, 15, 12, 15, 20, 24, 26, 15, 20, 22, 15],
+                        data: [55, 52, 48, 45, 50, 53, 56, 58, 50, 52, 54, 48],
                         borderColor: 'rgba(59, 130, 246, 1)',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderWidth: 3,
@@ -595,7 +615,7 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                         tension: 0.4
                     }, {
                         label: 'Nation',
-                        data: [65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65],
+                        data: [45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45],
                         borderColor: 'rgba(234, 179, 8, 1)',
                         backgroundColor: 'rgba(234, 179, 8, 0.1)',
                         borderWidth: 2,
@@ -639,7 +659,12 @@ Provide helpful insights about the data patterns, business rules, or recommendat
                         },
                         y: {
                             beginAtZero: true,
-                            max: 100,
+                            max: 80,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            },
                             grid: {
                                 color: 'rgba(0, 0, 0, 0.1)'
                             }
@@ -653,6 +678,44 @@ Provide helpful insights about the data patterns, business rules, or recommendat
             });
         }
 
+        function addDynamicChart(chartConfig) {
+            const chartsContainer = document.getElementById('chartsContainer');
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'chart-container col-span-2'; // Full width for dynamic charts
+            chartDiv.innerHTML = `
+                <h3 class="chart-title">
+                    <i class="fas fa-chart-line text-indigo-600 mr-2"></i>
+                    ${chartConfig.title}
+                </h3>
+                <div class="chart-content">
+                    <canvas id="${chartConfig.id}" class="chart-canvas"></canvas>
+                </div>
+            `;
+            chartsContainer.appendChild(chartDiv);
+
+            // Create the chart
+            const ctx = document.getElementById(chartConfig.id).getContext('2d');
+            new Chart(ctx, {
+                type: chartConfig.type,
+                data: chartConfig.data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        datalabels: {
+                            display: true,
+                            font: {
+                                size: 10
+                            }
+                        }
+                    },
+                    scales: chartConfig.scales || {}
+                }
+            });
+        }
 
         function autoResizeTextarea() {
             const textarea = document.getElementById('messageInput');
@@ -698,7 +761,16 @@ Provide helpful insights about the data patterns, business rules, or recommendat
             try {
                 let aiResponse;
                 if (geminiAPI) {
-                    const context = `User is viewing analytics dashboard for ${currentIndication} with focus on ${currentAnalysis}. Charts show drug episode gaps, market share by therapy lines, payer coverage, and treatment persistence data.`;
+                    const chartContext = getChartContext();
+                    const context = `You are an AI assistant analyzing healthcare market access data for ${currentIndication}. Current dashboard shows:
+
+${chartContext}
+
+Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) and Rx refers to prescription claims (NDC codes). Market access analysis focuses on payer coverage, out-of-pocket costs, and treatment accessibility.
+
+User question: "${message}"
+
+Provide insights about the charts, explain patterns you see, or suggest additional analyses. You can also recommend adding new charts if relevant to their question.`;
                     aiResponse = await geminiAPI.generateResponse(message, context);
                 } else {
                     aiResponse = `Thank you for asking about "${message}". I can help explain the data patterns in the charts. The analytics show important trends in patient treatment patterns and market access dynamics.`;
@@ -737,6 +809,38 @@ Provide helpful insights about the data patterns, business rules, or recommendat
 
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getChartContext() {
+            return `
+1. PAYER DISTRIBUTION PIE CHART:
+   - Commercial: 37.5% (largest segment)
+   - HIX: 20.83%
+   - Managed Medicaid: 16.67%
+   - Medicaid FFS: 12.5%
+   - Part D: 12.5%
+
+2. TOP 5 COMMERCIAL PAYERS BAR CHART:
+   - Caremark: 80% coverage (highest)
+   - Aetna: 60% coverage
+   - ESI (Express Scripts): 40% coverage
+   - Humana: 30% coverage
+   - UHC: 20% coverage (lowest)
+
+3. COMMERCIAL TRx MARKET SHARE LINE CHART (Monthly):
+   - Caremark: 20-32% range (highest, peaks in Aug at 32%)
+   - Aetna: 12-26% range (mid-range performance)
+   - Express Scripts: 8-20% range (lowest performer)
+   - National benchmark: 65% (dashed line)
+
+4. OOP COST BY PAYER LINE CHART (Monthly $):
+   - Caremark: $15-28 range (lowest costs - explains high market share)
+   - Aetna: $35-48 range (moderate costs)
+   - Express Scripts: $45-58 range (highest costs - explains low market share)
+   - National average: $45 (dashed line)
+
+KEY INSIGHT: Caremark dominates market share due to lowest out-of-pocket costs for patients.
+            `;
         }
 
         function addAIMessage(message) {
