@@ -329,16 +329,38 @@
         // Conversation flow and AI responses
         const conversationFlow = {
             1: {
-                question: "Great choice! Now, let's define your patient population. Are you interested in analyzing all NSCLC patients, or do you want to focus on specific subgroups?",
+                question: "Great choice! First, let's clarify the treatment setting for your NSCLC patient journey analysis. Which stage/setting should we focus on?",
                 suggestions: [
-                    "All NSCLC patients",
-                    "Metastatic NSCLC only",
-                    "Treatment-naive patients",
-                    "Patients with specific biomarkers (EGFR, ALK, etc.)",
-                    "Elderly patients (65+)"
+                    "Metastatic NSCLC (advanced stage)",
+                    "Neo-adjuvant setting (pre-surgical treatment)",
+                    "Adjuvant setting (post-surgical treatment)",
+                    "All stages combined",
+                    "Early-stage resectable NSCLC"
                 ]
             },
             2: {
+                question: "Perfect! Now, are there specific biomarkers that should be the focus of your NSCLC analysis? This will help us understand targeted therapy patterns.",
+                suggestions: [
+                    "EGFR mutations (exon 19 del, L858R)",
+                    "ALK rearrangements",
+                    "ROS1 rearrangements",
+                    "PD-L1 expression levels",
+                    "KRAS mutations",
+                    "All biomarkers combined",
+                    "No specific biomarker focus needed"
+                ]
+            },
+            3: {
+                question: "Excellent! Now let's define your patient population. Based on your stage and biomarker preferences, how would you like to segment the patients?",
+                suggestions: [
+                    "All patients in the selected setting",
+                    "Treatment-naive patients only",
+                    "Patients with biomarker testing performed",
+                    "Elderly patients (65+)",
+                    "Specific performance status patients"
+                ]
+            },
+            4: {
                 question: "Perfect! Which claims databases would you like to include in your analysis? Different databases provide different coverage perspectives.",
                 suggestions: [
                     "Commercial claims (Optum, IQVIA)",
@@ -348,7 +370,7 @@
                     "All available databases"
                 ]
             },
-            3: {
+            5: {
                 question: "Excellent! Now let's create your market basket analysis. Are comorbidities and adverse events critical for your research objectives?",
                 suggestions: [
                     "Yes, include both comorbidities and adverse events",
@@ -358,7 +380,7 @@
                     "Include only treatment-emergent adverse events"
                 ]
             },
-            4: {
+            6: {
                 question: "Great! Now let's configure patient cohort creation. How would you like to define treatment lines and patient eligibility?",
                 suggestions: [
                     "Standard oncology line definitions",
@@ -368,7 +390,7 @@
                     "Custom line definitions based on regimen changes"
                 ]
             },
-            5: {
+            7: {
                 question: "Perfect! For episode and regimen creation, how should we define treatment episodes and combination therapies?",
                 suggestions: [
                     "Combination regimens as single episodes",
@@ -378,7 +400,7 @@
                     "Include supportive care medications"
                 ]
             },
-            6: {
+            8: {
                 question: "Now for journey progression logic. Should specific backbone therapies be considered in line advancement decisions?",
                 suggestions: [
                     "Yes, platinum-based chemotherapy backbones",
@@ -388,14 +410,24 @@
                     "Standard progression regardless of backbone"
                 ]
             },
-            7: {
-                question: "Almost there! What specific analytics outputs would be most valuable for your research? I can configure multiple output types.",
+            9: {
+                question: "Excellent! What specific analytics outputs would be most valuable for your research? I can configure multiple output types.",
                 suggestions: [
                     "Treatment pattern visualizations",
                     "Time-to-event analyses",
                     "Healthcare cost breakdowns",
                     "Real-world outcomes metrics",
                     "Comparative effectiveness data"
+                ]
+            },
+            10: {
+                question: "Finally, would you like to upload any reports, research papers, or reference materials to inform the NSCLC analysis approach?",
+                suggestions: [
+                    "Yes, I have clinical guidelines to upload",
+                    "Yes, I have previous analysis reports",
+                    "Yes, I have relevant research papers",
+                    "No, proceed with standard configuration",
+                    "I'll upload materials later"
                 ]
             }
         };
@@ -601,7 +633,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 addAIMessage('I apologize, but I encountered an error. Let me help you continue with the setup. Could you please try again or select one of the suggested options?');
 
                 // Show suggestions for current step
-                if (currentStep <= 7) {
+                if (currentStep <= 10) {
                     const currentFlow = conversationFlow[currentStep];
                     if (currentFlow) {
                         showSuggestions(currentFlow.suggestions);
@@ -680,11 +712,11 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             conversationData[`step${currentStep}`] = userInput;
             hasCompletedSteps.add(currentStep);
             updateStepProgress(currentStep, 'completed');
-            updateOverallProgress((hasCompletedSteps.size / 8) * 100);
+            updateOverallProgress((hasCompletedSteps.size / 10) * 100);
 
             currentStep++;
 
-            if (currentStep <= 7) {
+            if (currentStep <= 10) {
                 const nextFlow = conversationFlow[currentStep];
                 setTimeout(() => {
                     addAIMessage(nextFlow.question);
@@ -709,11 +741,11 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             // Continue with normal flow
             hasCompletedSteps.add(currentStep);
             updateStepProgress(currentStep, 'completed');
-            updateOverallProgress((hasCompletedSteps.size / 8) * 100);
+            updateOverallProgress((hasCompletedSteps.size / 10) * 100);
 
             currentStep++;
 
-            if (currentStep <= 7) {
+            if (currentStep <= 10) {
                 const nextFlow = conversationFlow[currentStep];
                 addAIMessage(nextFlow.question);
                 showSuggestions(nextFlow.suggestions);
