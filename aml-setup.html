@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AML Analysis Setup - Healthcare Analytics Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="analytics-state.js"></script>
+    <script>
+        // Expose Vercel environment variable for Gemini API
+        window.GEMINI_API_KEY = '${process.env.GEMINI_API_KEY || ''}';
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%);
+        }
+
+        .chat-bubble {
+            max-width: 80%;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .chat-bubble.ai {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-bubble.user {
+            background: linear-gradient(135deg, #2dd4bf 0%, #0d4f4f 100%);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .typing-indicator {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .chat-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #2dd4bf;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.1);
+        }
+
+        .progress-sidebar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-step {
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background: rgba(45, 212, 191, 0.2);
+            border-color: #2dd4bf;
+        }
+
+        .progress-step.completed {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+
+        .suggested-response {
+            background: rgba(45, 212, 191, 0.1);
+            border: 1px solid rgba(45, 212, 191, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .suggested-response:hover {
+            background: rgba(45, 212, 191, 0.2);
+            border-color: #2dd4bf;
+        }
+    </style>
+</head>
+<body class="h-screen gradient-bg flex">
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-white/10">
+            <div class="flex items-center">
+                <button class="text-white/80 hover:text-white mr-4" onclick="goBack()">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+                <div class="w-8 h-8 bg-white rounded flex items-center justify-center mr-3">
+                    <span class="text-gray-800 text-sm font-bold">ZS</span>
+                </div>
+                <div>
+                    <h1 class="text-white text-lg font-medium">AML Analysis Setup</h1>
+                    <p class="text-white/60 text-sm">Configure your patient journey analysis</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button class="text-white/80 hover:text-white text-xl">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <div class="w-8 h-8 bg-white/20 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div class="flex-1 overflow-y-auto p-6" id="chatMessages">
+            <!-- Initial AI Message -->
+            <div class="flex items-start space-x-4 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-4 text-white">
+                    <div class="flex items-center mb-2">
+                        <span class="font-medium">AI Research Assistant</span>
+                        <span class="text-xs text-white/60 ml-2">Just now</span>
+                    </div>
+                    <p class="mb-3">Hello! I'm here to help you set up your AML patient journey analysis using real-world claims data. I'll ask you some smart questions to configure the perfect analysis for your needs.</p>
+                    <p>Let's start with understanding your research objectives. What specific aspects of the AML patient journey are you most interested in exploring?</p>
+                </div>
+            </div>
+
+            <!-- Suggested Response Buttons -->
+            <div class="flex flex-wrap gap-3 mb-6 ml-14" id="suggestedResponses">
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Induction treatment patterns
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Consolidation therapy sequencing
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Relapsed/refractory treatment paths
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Time to treatment initiation
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Healthcare resource utilization
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Molecular testing patterns
+                </button>
+                <button class="suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium" onclick="selectSuggestion(this)">
+                    Stem cell transplant pathways
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="border-t border-white/10 p-6">
+            <div class="flex items-end space-x-4">
+                <div class="flex-1">
+                    <div class="relative">
+                        <textarea
+                            id="messageInput"
+                            class="chat-input w-full rounded-lg px-4 py-3 text-white placeholder-white/60 resize-none"
+                            placeholder="Type your response or select from suggestions above..."
+                            rows="1"
+                            style="min-height: 44px; max-height: 120px;"
+                        ></textarea>
+                        <div class="absolute right-3 bottom-3 flex items-center space-x-2">
+                            <button class="text-white/60 hover:text-white/80 text-sm" title="Attach file">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-xs text-white/40 mt-1">
+                        Press Shift + Enter for new line, Enter to send
+                    </div>
+                </div>
+                <button
+                    id="sendButton"
+                    onclick="sendMessage()"
+                    class="bg-teal-500 hover:bg-teal-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg px-6 py-3 transition-colors font-medium"
+                >
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Sidebar -->
+    <div class="w-80 progress-sidebar p-6" id="progressSidebar">
+        <div class="sticky top-0">
+            <h3 class="text-white text-lg font-semibold mb-6">Setup Progress</h3>
+
+            <!-- Progress Steps -->
+            <div class="space-y-4 mb-8">
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step1">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-target text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Research Objectives</div>
+                            <div class="text-white/60 text-xs">Define analysis goals</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step2">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-users text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Patient Population</div>
+                            <div class="text-white/60 text-xs">Define inclusion criteria</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step3">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-database text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Data Sources</div>
+                            <div class="text-white/60 text-xs">Select claims databases</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step4">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-shopping-basket text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Market Basket</div>
+                            <div class="text-white/60 text-xs">Comorbidities & events</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step5">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-users-cog text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Patient Cohort</div>
+                            <div class="text-white/60 text-xs">Define cohort criteria</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step6">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-pills text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Episodes & Regimens</div>
+                            <div class="text-white/60 text-xs">Treatment definitions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step7">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-route text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Journey Progression</div>
+                            <div class="text-white/60 text-xs">Line advancement logic</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-step border border-white/20 rounded-lg p-4" id="step8">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 text-sm">
+                            <i class="fas fa-chart-line text-white/60"></i>
+                        </div>
+                        <div>
+                            <div class="text-white font-medium text-sm">Analytics Setup</div>
+                            <div class="text-white/60 text-xs">Configure outputs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Progress -->
+            <div class="bg-white/10 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-white font-medium text-sm">Completion</span>
+                    <span class="text-white text-sm" id="overallProgress">0%</span>
+                </div>
+                <div class="w-full bg-white/20 rounded-full h-2">
+                    <div class="bg-teal-400 h-2 rounded-full transition-all duration-500" style="width: 0%" id="progressBar"></div>
+                </div>
+                <div class="text-white/60 text-xs mt-2" id="progressStatus">
+                    Getting started...
+                </div>
+            </div>
+
+            <!-- Collected Information -->
+            <div class="mt-6" id="collectedInfo" style="display: none;">
+                <h4 class="text-white font-medium text-sm mb-3">Collected Information</h4>
+                <div class="space-y-2 text-xs" id="infoList">
+                    <!-- Dynamic content will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let conversationData = {};
+        let isProcessing = false;
+        let isInFollowUp = false;
+        let geminiAPI = null;
+        let hasCompletedSteps = new Set();
+
+        // Conversation flow and AI responses
+        const conversationFlow = {
+            1: {
+                question: "Great choice! First, let's clarify the treatment setting for your AML patient journey analysis. Which patient population should we focus on?",
+                suggestions: [
+                    "Newly diagnosed AML patients",
+                    "Relapsed/refractory AML patients",
+                    "Secondary AML patients",
+                    "All AML patients combined",
+                    "Elderly AML patients (65+)"
+                ]
+            },
+            2: {
+                question: "Perfect! Now, are there specific cytogenetic risk categories that should be the focus of your AML analysis? This will help us understand treatment patterns.",
+                suggestions: [
+                    "Favorable risk cytogenetics",
+                    "Intermediate risk cytogenetics",
+                    "Adverse risk cytogenetics",
+                    "FLT3-ITD mutations",
+                    "NPM1 mutations",
+                    "All risk categories combined",
+                    "No specific cytogenetic focus needed"
+                ]
+            },
+            3: {
+                question: "Excellent! Now let's define your patient population. Based on your treatment setting and cytogenetic preferences, how would you like to segment the patients?",
+                suggestions: [
+                    "All patients in the selected setting",
+                    "Treatment-naive patients only",
+                    "Patients with molecular testing performed",
+                    "Elderly patients (65+) ineligible for intensive therapy",
+                    "Fit patients eligible for intensive chemotherapy",
+                    "Patients with specific performance status (ECOG 0-1)"
+                ]
+            },
+            4: {
+                question: "Perfect! Which claims databases would you like to include in your analysis? Different databases provide different coverage perspectives.",
+                suggestions: [
+                    "Commercial claims (Optum, IQVIA)",
+                    "Medicare fee-for-service",
+                    "Medicaid databases",
+                    "Integrated datasets (commercial + Medicare)",
+                    "All available databases"
+                ]
+            },
+            5: {
+                question: "Excellent! Now let's create your market basket analysis. For AML patients, are infection complications and treatment-related toxicities critical for your research objectives?",
+                suggestions: [
+                    "Yes, include both infections and treatment toxicities",
+                    "Focus on infection complications only",
+                    "Focus on chemotherapy-related toxicities only",
+                    "No, focus purely on treatment patterns",
+                    "Include only severe adverse events (Grade 3+)",
+                    "Include tumor lysis syndrome and differentiation syndrome"
+                ]
+            },
+            6: {
+                question: "Do you want to filter the patient cohort based on age, prior treatments, or exclude any similar diagnosis codes?",
+                suggestions: [
+                    "Filter by age groups (e.g., 65+ elderly patients)",
+                    "Exclude patients with prior cancer treatments",
+                    "Exclude similar diagnosis codes (other hematologic malignancies)",
+                    "Include only de novo AML patients",
+                    "Exclude secondary AML patients",
+                    "No filters - include all AML patients",
+                    "Custom filtering based on specific criteria"
+                ]
+            },
+            7: {
+                question: "Now for journey progression logic. Should specific treatment approaches be considered in line advancement decisions?",
+                suggestions: [
+                    "Yes, anthracycline-based induction regimens",
+                    "Include hypomethylating agent considerations",
+                    "Consider FLT3 inhibitor resistance patterns",
+                    "Focus on intensive vs. non-intensive switches",
+                    "Include stem cell transplant eligibility",
+                    "Standard progression regardless of backbone"
+                ]
+            },
+            8: {
+                question: "Great! Now let's configure the patient cohort creation parameters. How would you like to define treatment lines and episode boundaries for AML?",
+                suggestions: [
+                    "Standard line definitions (Induction, Consolidation, Salvage)",
+                    "Episode-based on gaps in therapy (30+ days)",
+                    "Molecular marker-driven line progression",
+                    "Performance status-based transitions",
+                    "Transplant-based treatment phases",
+                    "Custom line definition criteria"
+                ]
+            },
+            9: {
+                question: "Excellent! What specific analytics outputs would be most valuable for your AML research? I can configure multiple output types.",
+                suggestions: [
+                    "Treatment pattern visualizations",
+                    "Time-to-remission analyses",
+                    "Healthcare cost breakdowns",
+                    "Overall survival metrics",
+                    "Complete remission rates",
+                    "Transplant referral patterns",
+                    "Comparative effectiveness data"
+                ]
+            },
+            10: {
+                question: "Finally, would you like to upload any reports, research papers, or reference materials to inform the AML analysis approach?",
+                suggestions: [
+                    "Yes, I have NCCN AML guidelines to upload",
+                    "Yes, I have previous AML analysis reports",
+                    "Yes, I have relevant hematology research papers",
+                    "Yes, I have institutional AML treatment protocols",
+                    "No, proceed with standard configuration",
+                    "I'll upload materials later"
+                ]
+            }
+        };
+
+        // Follow-up questions for specific responses
+        const followUpQuestions = {
+            "comorbidities": {
+                question: "Which specific comorbidities are most critical for your AML analysis?",
+                suggestions: [
+                    "Infection susceptibility and complications",
+                    "Cardiovascular conditions (heart failure, arrhythmias)",
+                    "Diabetes and metabolic disorders",
+                    "Renal and hepatic impairment",
+                    "All major comorbidity categories"
+                ]
+            },
+            "adverse_events": {
+                question: "Which adverse events should we prioritize in the market basket?",
+                suggestions: [
+                    "Febrile neutropenia and infections",
+                    "Hematologic toxicities (cytopenias)",
+                    "Cardiac toxicities (anthracycline-related)",
+                    "Tumor lysis syndrome",
+                    "Differentiation syndrome",
+                    "All grade 3+ adverse events"
+                ]
+            },
+            "backbone_therapy": {
+                question: "Which treatment approach considerations are most important for line progression?",
+                suggestions: [
+                    "Anthracycline sensitivity/resistance status",
+                    "Prior hypomethylating agent exposure",
+                    "FLT3 inhibitor resistance mechanisms",
+                    "Performance status changes",
+                    "Molecular marker-driven treatment selection",
+                    "Transplant candidacy assessment"
+                ]
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('NSCLC Conversational Setup loaded');
+
+            // Auto-resize textarea
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('input', autoResizeTextarea);
+            messageInput.addEventListener('keydown', handleKeyDown);
+
+            // Initialize Gemini API
+            initializeGeminiAPI();
+
+            // Update landing page status
+            updateLandingPageStatus('in-progress');
+
+            // Mark step 1 as active initially
+            updateStepProgress(1, 'active');
+        });
+
+        function initializeGeminiAPI() {
+            // Try to get API key from environment variables exposed by Vercel
+            const apiKey = process?.env?.GEMINI_API_KEY || window.GEMINI_API_KEY || null;
+
+            if (apiKey) {
+                geminiAPI = {
+                    apiKey: apiKey,
+                    apiUrl: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+
+                    async generateResponse(userMessage, context = '') {
+                        try {
+                            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    contents: [{
+                                        parts: [{
+                                            text: `You are an AI assistant helping configure AML patient journey analysis from claims data.
+
+Healthcare Context: In claims data analysis, Dx refers to diagnosis codes (ICD-10) that identify medical conditions, and Rx refers to prescription claims (NDC codes) that capture medication dispensing. Claims data includes medical claims (procedures, visits) and pharmacy claims (prescriptions). For AML, this includes induction therapy, consolidation, and salvage treatments.
+
+Current Context: ${context}
+
+User message: ${userMessage}
+
+Respond appropriately to help guide the conversation forward. Be concise, healthcare-focused, acknowledge their input, and help progress the conversation to the next step of AML analysis configuration.`
+                                        }]
+                                    }],
+                                    generationConfig: {
+                                        temperature: 0.7,
+                                        maxOutputTokens: 200,
+                                    }
+                                })
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('API request failed');
+                            }
+
+                            const data = await response.json();
+                            return data.candidates[0].content.parts[0].text;
+                        } catch (error) {
+                            console.warn('Gemini API error:', error);
+                            return this.getFallbackResponse(userMessage);
+                        }
+                    },
+
+                    getFallbackResponse(userMessage) {
+                        const lowerMessage = userMessage.toLowerCase();
+
+                        if (lowerMessage.includes('help') || lowerMessage.includes('confused')) {
+                            return "I understand this might be complex. Let me help you choose the best option for your AML analysis. Would you like me to explain any of these choices in more detail?";
+                        } else if (lowerMessage.includes('different') || lowerMessage.includes('other')) {
+                            return "I can help you with a custom configuration. Could you tell me more specifically what you're looking for in your AML patient journey analysis?";
+                        } else if (lowerMessage.includes('not sure') || lowerMessage.includes('unsure')) {
+                            return "No problem! For most AML studies, I'd recommend starting with the suggested options. We can always refine this later. Which option seems most relevant to your research goals?";
+                        } else {
+                            return "Thank you for that input. Let me process this and move us to the next step of configuring your analysis.";
+                        }
+                    }
+                };
+                console.log('Gemini API initialized');
+            } else {
+                console.log('No Gemini API key found, using fallback responses');
+            }
+        }
+
+        function autoResizeTextarea() {
+            const textarea = document.getElementById('messageInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function selectSuggestion(button) {
+            const messageInput = document.getElementById('messageInput');
+            messageInput.value = button.textContent.trim();
+            messageInput.focus();
+
+            // Highlight selected suggestion
+            document.querySelectorAll('.suggested-response').forEach(btn => {
+                btn.classList.remove('bg-teal-500/30', 'border-teal-400');
+            });
+            button.classList.add('bg-teal-500/30', 'border-teal-400');
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (!message || isProcessing) return;
+
+            isProcessing = true;
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            // Add user message
+            addUserMessage(message);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // Hide suggestions
+            hideSuggestions();
+
+            try {
+                // Check if this is a follow-up question response
+                if (isInFollowUp) {
+                    await handleFollowUpResponse(message);
+                    return;
+                }
+
+                // Store conversation data for current step
+                conversationData[`step${currentStep}`] = message;
+
+                // Use Gemini API for natural conversation flow
+                let aiResponse;
+                if (geminiAPI && currentStep <= 10) {
+                    try {
+                        const stepContext = getStepContext(currentStep);
+                        const context = `Current step ${currentStep}: ${stepContext}. User provided: "${message}". Acknowledge their input and progress to the next NSCLC analysis configuration step.`;
+
+                        showTypingIndicator();
+                        aiResponse = await geminiAPI.generateResponse(message, context);
+                        hideTypingIndicator();
+                        addAIMessage(aiResponse);
+                    } catch (geminiError) {
+                        console.error('Gemini API error:', geminiError);
+                        hideTypingIndicator();
+                        addAIMessage(`Great! I've noted your preferences: "${message}". Let's continue with the next aspect of your NSCLC analysis.`);
+                    }
+                } else {
+                    // Fallback to simple acknowledgment
+                    showTypingIndicator();
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    hideTypingIndicator();
+                    addAIMessage(`Great! I've noted your preferences: "${message}". Let's continue with the next aspect of your NSCLC analysis.`);
+                }
+
+                // Progress to next step after AI acknowledgment
+                await progressToNextStep(message);
+            } catch (error) {
+                console.error('Error in sendMessage:', error);
+                hideTypingIndicator();
+
+                // Special handling for final step
+                if (currentStep === 10) {
+                    console.log('Error on final step, attempting to complete setup...');
+                    try {
+                        await completeSetup();
+                        return;
+                    } catch (completeError) {
+                        console.error('Error in completeSetup:', completeError);
+                    }
+                }
+
+                addAIMessage('I apologize, but I encountered an error. Let me help you continue with the setup. Could you please try again or select one of the suggested options?');
+
+                // Show suggestions for current step
+                if (currentStep <= 10) {
+                    const currentFlow = conversationFlow[currentStep];
+                    if (currentFlow) {
+                        showSuggestions(currentFlow.suggestions);
+                    }
+                }
+            } finally {
+                // Re-enable send button
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                isProcessing = false;
+            }
+        }
+
+        async function validateStandardResponse(message) {
+            // Accept any reasonable input - suggestions are guides, not requirements
+            const lowerMessage = message.toLowerCase().trim();
+
+            // Reject only truly invalid inputs
+            if (lowerMessage.length < 2) return false;
+            if (/^[^a-zA-Z]*$/.test(lowerMessage)) return false; // Only punctuation/numbers
+
+            // Accept all other inputs as valid
+            return true;
+        }
+
+        async function handleUnexpectedResponse(message) {
+            showTypingIndicator();
+
+            let aiResponse;
+            if (geminiAPI) {
+                const context = `Current step: ${currentStep}. Expected responses relate to: ${conversationFlow[currentStep]?.suggestions?.join(', ') || 'NSCLC analysis configuration'}`;
+                aiResponse = await geminiAPI.generateResponse(message, context);
+            } else {
+                aiResponse = generateContextualFallback(message);
+            }
+
+            hideTypingIndicator();
+            addAIMessage(aiResponse);
+
+            // Show original suggestions again
+            const currentFlow = conversationFlow[currentStep];
+            if (currentFlow) {
+                showSuggestions(currentFlow.suggestions);
+            }
+        }
+
+        function generateAcceptingFallback(message) {
+            const stepContext = {
+                1: "research objectives and analysis goals",
+                2: "patient population criteria",
+                3: "claims database selection",
+                4: "market basket configuration",
+                5: "patient cohort definitions",
+                6: "episode and regimen creation",
+                7: "journey progression logic"
+            };
+
+            return `Perfect! I understand your approach to ${stepContext[currentStep] || 'this configuration step'}: "${message}". This gives me valuable insight into your AML analysis needs. Let me continue with the next configuration step.`;
+        }
+
+        function getStepContext(step) {
+            const contexts = {
+                1: "defining research objectives for AML patient journey analysis",
+                2: "selecting patient population criteria and inclusion/exclusion requirements",
+                3: "choosing claims databases and data sources for comprehensive coverage",
+                4: "configuring market basket analysis including infections and treatment toxicities",
+                5: "defining patient cohort creation rules and treatment line definitions",
+                6: "setting up episode and regimen creation parameters for treatment tracking",
+                7: "configuring journey progression logic and line advancement rules"
+            };
+            return contexts[step] || "configuring AML analysis parameters";
+        }
+
+        async function progressToNextStep(userInput) {
+            console.log(`Progressing from step ${currentStep} to step ${currentStep + 1}`);
+
+            try {
+                // Store the user input and continue to next step
+                conversationData[`step${currentStep}`] = userInput;
+                hasCompletedSteps.add(currentStep);
+                updateStepProgress(currentStep, 'completed');
+                updateOverallProgress((hasCompletedSteps.size / 10) * 100);
+
+                currentStep++;
+            } catch (progressError) {
+                console.error('Error in step progression:', progressError);
+                throw progressError;
+            }
+
+            if (currentStep <= 10) {
+                const nextFlow = conversationFlow[currentStep];
+                if (nextFlow) {
+                    setTimeout(() => {
+                        addAIMessage(nextFlow.question);
+                        showSuggestions(nextFlow.suggestions);
+                        updateStepProgress(currentStep, 'active');
+                    }, 1000);
+                } else {
+                    console.error(`No conversation flow found for step ${currentStep}`);
+                    setTimeout(async () => {
+                        try {
+                            await completeSetup();
+                        } catch (error) {
+                            console.error('Error in fallback completion:', error);
+                            addAIMessage("🎉 Your NSCLC analysis setup is complete! You can now proceed to the analysis dashboard.");
+                            updateLandingPageStatus('completed');
+                            showCompletionButton();
+                        }
+                    }, 1000);
+                }
+            } else {
+                setTimeout(async () => {
+                    try {
+                        await completeSetup();
+                    } catch (error) {
+                        console.error('Error in completeSetup from progressToNextStep:', error);
+                        // Fallback completion
+                        addAIMessage("🎉 Your NSCLC analysis setup is complete! You can now proceed to the analysis dashboard.");
+                        updateLandingPageStatus('completed');
+                        showCompletionButton();
+                    }
+                }, 1000);
+            }
+        }
+
+        async function handleFollowUpResponse(message) {
+            conversationData[`step${currentStep}_followup_response`] = message;
+            isInFollowUp = false;
+
+            showTypingIndicator();
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            hideTypingIndicator();
+
+            addAIMessage("Perfect! I've captured those details. Now let's continue with the next aspect of your analysis setup.");
+
+            // Continue with normal flow
+            hasCompletedSteps.add(currentStep);
+            updateStepProgress(currentStep, 'completed');
+            updateOverallProgress((hasCompletedSteps.size / 10) * 100);
+
+            currentStep++;
+
+            if (currentStep <= 10) {
+                const nextFlow = conversationFlow[currentStep];
+                addAIMessage(nextFlow.question);
+                showSuggestions(nextFlow.suggestions);
+                updateStepProgress(currentStep, 'active');
+            } else {
+                await completeSetup();
+            }
+        }
+
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start space-x-4 mb-6 justify-end';
+
+            messageDiv.innerHTML = `
+                <div class="chat-bubble user rounded-lg p-4 text-white">
+                    <div class="flex items-center mb-2 justify-end">
+                        <span class="text-xs text-white/80 mr-2">Just now</span>
+                        <span class="font-medium">You</span>
+                    </div>
+                    <p>${message}</p>
+                </div>
+                <div class="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user text-white text-sm"></i>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addAIMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start space-x-4 mb-6';
+
+            messageDiv.innerHTML = `
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-4 text-white">
+                    <div class="flex items-center mb-2">
+                        <span class="font-medium">AI Research Assistant</span>
+                        <span class="text-xs text-white/60 ml-2">Just now</span>
+                    </div>
+                    <p>${message}</p>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showSuggestions(suggestions) {
+            const suggestedResponses = document.getElementById('suggestedResponses');
+            suggestedResponses.innerHTML = '';
+
+            suggestions.forEach(suggestion => {
+                const button = document.createElement('button');
+                button.className = 'suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium';
+                button.textContent = suggestion;
+                button.onclick = () => selectSuggestion(button);
+                suggestedResponses.appendChild(button);
+            });
+
+            // Add suggestions container after AI message
+            const chatMessages = document.getElementById('chatMessages');
+            const suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'flex flex-wrap gap-3 mb-6 ml-14';
+            suggestionsContainer.id = 'currentSuggestions';
+
+            suggestions.forEach(suggestion => {
+                const button = document.createElement('button');
+                button.className = 'suggested-response px-4 py-2 rounded-full text-sm text-teal-300 font-medium';
+                button.textContent = suggestion;
+                button.onclick = () => selectSuggestion(button);
+                suggestionsContainer.appendChild(button);
+            });
+
+            chatMessages.appendChild(suggestionsContainer);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideSuggestions() {
+            const currentSuggestions = document.getElementById('currentSuggestions');
+            if (currentSuggestions) {
+                currentSuggestions.remove();
+            }
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'flex items-start space-x-4 mb-6';
+
+            typingDiv.innerHTML = `
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <div class="chat-bubble ai rounded-lg p-4 text-white">
+                    <div class="flex items-center space-x-2">
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full"></div>
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full" style="animation-delay: 0.2s"></div>
+                        <div class="typing-indicator w-2 h-2 bg-white/60 rounded-full" style="animation-delay: 0.4s"></div>
+                        <span class="text-white/60 text-sm ml-2">AI is thinking...</span>
+                    </div>
+                </div>
+            `;
+
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function updateStepProgress(step, status) {
+            const stepElement = document.getElementById(`step${step}`);
+            const icon = stepElement.querySelector('i');
+
+            stepElement.classList.remove('active', 'completed');
+
+            if (status === 'active') {
+                stepElement.classList.add('active');
+                icon.className = 'fas fa-spinner fa-spin text-teal-400';
+            } else if (status === 'completed') {
+                stepElement.classList.add('completed');
+                icon.className = 'fas fa-check text-green-400';
+            }
+        }
+
+        function updateOverallProgress(percentage) {
+            document.getElementById('overallProgress').textContent = Math.round(percentage) + '%';
+            document.getElementById('progressBar').style.width = percentage + '%';
+
+            if (percentage < 12.5) {
+                document.getElementById('progressStatus').textContent = 'Defining objectives...';
+            } else if (percentage < 25) {
+                document.getElementById('progressStatus').textContent = 'Configuring population...';
+            } else if (percentage < 37.5) {
+                document.getElementById('progressStatus').textContent = 'Setting up data sources...';
+            } else if (percentage < 50) {
+                document.getElementById('progressStatus').textContent = 'Creating market basket...';
+            } else if (percentage < 62.5) {
+                document.getElementById('progressStatus').textContent = 'Defining patient cohorts...';
+            } else if (percentage < 75) {
+                document.getElementById('progressStatus').textContent = 'Configuring episodes...';
+            } else if (percentage < 87.5) {
+                document.getElementById('progressStatus').textContent = 'Setting progression rules...';
+            } else if (percentage < 100) {
+                document.getElementById('progressStatus').textContent = 'Finalizing analytics...';
+            } else {
+                document.getElementById('progressStatus').textContent = 'Setup complete!';
+            }
+        }
+
+        async function checkForFollowUp(message) {
+            const lowerMessage = message.toLowerCase();
+
+            // Check if this is step 3 (market basket) and needs comorbidity/AE follow-up
+            if (currentStep === 3) {
+                if (lowerMessage.includes('comorbidities') || lowerMessage.includes('both')) {
+                    await handleFollowUpQuestion('comorbidities');
+                    return true;
+                } else if (lowerMessage.includes('adverse events') || lowerMessage.includes('events only')) {
+                    await handleFollowUpQuestion('adverse_events');
+                    return true;
+                }
+            }
+
+            // Check if this is step 6 (journey progression) and needs backbone follow-up
+            if (currentStep === 6) {
+                if (lowerMessage.includes('backbone') || lowerMessage.includes('platinum') || lowerMessage.includes('immunotherapy')) {
+                    await handleFollowUpQuestion('backbone_therapy');
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        async function handleFollowUpQuestion(type) {
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Simulate AI processing time
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            hideTypingIndicator();
+
+            // Show follow-up question
+            const followUp = followUpQuestions[type];
+            addAIMessage(followUp.question);
+            showSuggestions(followUp.suggestions);
+
+            // Set follow-up mode
+            isInFollowUp = true;
+
+            // Re-enable send button
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = false;
+            sendButton.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            isProcessing = false;
+        }
+
+        async function completeSetup() {
+            // Show final AI message
+            addAIMessage("Perfect! I have all the information needed to set up your AML patient journey analysis. Let me process this configuration and prepare your analytics environment...");
+
+            // Update all remaining steps
+            updateStepProgress(10, 'active');
+
+            // Show processing message
+            showTypingIndicator();
+
+            // Simulate final processing
+            await new Promise(resolve => setTimeout(resolve, 4000));
+
+            hideTypingIndicator();
+
+            // Complete final step
+            updateStepProgress(10, 'completed');
+            updateOverallProgress(100);
+
+            // Show completion message with summary
+            const summary = generateSetupSummary();
+            addAIMessage(`🎉 Your AML analysis is now ready! I've configured a comprehensive patient journey analysis with the following specifications:\n\n${summary}\n\nYou can now access detailed insights from the main dashboard.`);
+
+            // Update landing page status
+            updateLandingPageStatus('completed');
+
+            // Show completion button
+            showCompletionButton();
+        }
+
+        function generateSetupSummary() {
+            const steps = [
+                `• Treatment Setting Focus: ${conversationData.step1 || 'Newly diagnosed AML'}`,
+                `• Cytogenetic Focus: ${conversationData.step2 || 'All risk categories'}`,
+                `• Patient Segmentation: ${conversationData.step3 || 'All patients'}`,
+                `• Claims Databases: ${conversationData.step4 || 'Commercial claims'}`,
+                `• Market Basket: ${conversationData.step5 || 'Standard analysis'}`,
+                `• Cohort Filtering: ${conversationData.step6 || 'No filters'}`,
+                `• Treatment Approach: ${conversationData.step7 || 'Standard progression'}`,
+                `• Cohort Parameters: ${conversationData.step8 || 'Standard line definitions'}`,
+                `• Analytics Outputs: ${conversationData.step9 || 'Treatment visualizations'}`,
+                `• Reference Materials: ${conversationData.step10 || 'Standard configuration'}`
+            ];
+            return steps.join('\n');
+        }
+
+        function showCompletionButton() {
+            const chatMessages = document.getElementById('chatMessages');
+            const buttonDiv = document.createElement('div');
+            buttonDiv.className = 'flex justify-center mb-6';
+
+            buttonDiv.innerHTML = `
+                <button onclick="goToAnalysis()" class="bg-teal-500 hover:bg-teal-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    View AML Analysis Dashboard
+                </button>
+            `;
+
+            chatMessages.appendChild(buttonDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function updateLandingPageStatus(status) {
+            localStorage.setItem('amlStatus', status);
+        }
+
+        function goToAnalysis() {
+            // Navigate to indication analysis page
+            sessionStorage.setItem('selectedIndication', 'aml');
+            sessionStorage.setItem('indicationDisplayName', 'AML');
+            window.location.href = 'indication-analysis.html?indication=aml';
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

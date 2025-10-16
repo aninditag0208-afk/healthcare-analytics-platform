@@ -116,14 +116,15 @@
                     </div>
                 </div>
 
-                <!-- IgAN -->
-                <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="navigateToIndication('igan')">
+                <!-- AML Setup -->
+                <div class="indication-card rounded-xl p-4 h-28 relative group cursor-pointer" onclick="handleAMLClick()" id="amlCard">
                     <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-sm font-semibold">IgAN</h3>
+                        <h3 class="text-sm font-semibold">AML</h3>
+                        <div class="status-dot rounded-full" id="amlStatusDot"></div>
                     </div>
-                    <p class="text-xs text-white/80">View</p>
-                    <div class="absolute bottom-3 right-3 text-white/60 group-hover:text-white transition-colors">
-                        <i class="fas fa-arrow-right text-sm"></i>
+                    <p class="text-xs text-white/80" id="amlStatusText">Setup</p>
+                    <div class="absolute bottom-3 right-3 text-white/60">
+                        <i class="fas fa-sliders-h text-sm" id="amlIcon"></i>
                     </div>
                 </div>
 
@@ -166,7 +167,7 @@
         function navigateToIndication(indication) {
             const indicationNames = {
                 'ovarian-cancer': 'Ovarian Cancer',
-                'igan': 'IgAN',
+                'aml': 'AML',
                 'breast-cancer': 'HER2+ Breast Cancer'
             };
 
@@ -210,6 +211,19 @@
             // If in-progress, do nothing (user can't click)
         }
 
+        function handleAMLClick() {
+            const status = getAMLStatus();
+
+            if (status === 'setup') {
+                // Navigate to conversational setup
+                window.location.href = 'aml-setup.html';
+            } else if (status === 'completed') {
+                // Navigate to indication analysis
+                navigateToIndication('aml');
+            }
+            // If in-progress, do nothing (user can't click)
+        }
+
         function setupNewIndication() {
             // Navigate to generic indication setup
             window.location.href = 'generic-setup.html';
@@ -217,6 +231,10 @@
 
         function getNSCLCStatus() {
             return localStorage.getItem('nsclcStatus') || 'setup';
+        }
+
+        function getAMLStatus() {
+            return localStorage.getItem('amlStatus') || 'setup';
         }
 
         function updateNSCLCStatus() {
@@ -246,6 +264,37 @@
                     nsclcIcon.className = 'fas fa-arrow-right text-lg';
                     nsclcCard.style.cursor = 'pointer';
                     nsclcCard.style.opacity = '1';
+                    break;
+            }
+        }
+
+        function updateAMLStatus() {
+            const status = getAMLStatus();
+            const statusDot = document.getElementById('amlStatusDot');
+            const statusText = document.getElementById('amlStatusText');
+            const amlIcon = document.getElementById('amlIcon');
+            const amlCard = document.getElementById('amlCard');
+
+            switch(status) {
+                case 'setup':
+                    statusDot.className = 'status-dot bg-gray-400 rounded-full';
+                    statusText.textContent = 'Setup';
+                    amlIcon.className = 'fas fa-sliders-h text-lg';
+                    amlCard.style.cursor = 'pointer';
+                    break;
+                case 'in-progress':
+                    statusDot.className = 'status-dot bg-orange-500 rounded-full';
+                    statusText.textContent = 'In Progress';
+                    amlIcon.className = 'fas fa-spinner fa-spin text-lg';
+                    amlCard.style.cursor = 'not-allowed';
+                    amlCard.style.opacity = '0.7';
+                    break;
+                case 'completed':
+                    statusDot.className = 'status-dot bg-green-500 rounded-full';
+                    statusText.textContent = 'View';
+                    amlIcon.className = 'fas fa-arrow-right text-lg';
+                    amlCard.style.cursor = 'pointer';
+                    amlCard.style.opacity = '1';
                     break;
             }
         }
@@ -340,8 +389,12 @@
             // Update NSCLC status on page load
             updateNSCLCStatus();
 
+            // Update AML status on page load
+            updateAMLStatus();
+
             // Check for status changes periodically
             setInterval(updateNSCLCStatus, 1000);
+            setInterval(updateAMLStatus, 1000);
 
             // Add typing animation to placeholder
             const input = document.getElementById('analysisInput');
