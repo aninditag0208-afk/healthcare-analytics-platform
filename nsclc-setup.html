@@ -407,6 +407,16 @@
                     "Standard progression regardless of backbone"
                 ]
             },
+            8: {
+                question: "Great! Now let's configure the patient cohort creation parameters. How would you like to define treatment lines and episode boundaries?",
+                suggestions: [
+                    "Standard line definitions (1L, 2L, 3L+)",
+                    "Episode-based on gaps in therapy (30+ days)",
+                    "Biomarker-driven line progression",
+                    "Performance status-based transitions",
+                    "Custom line definition criteria"
+                ]
+            },
             9: {
                 question: "Excellent! What specific analytics outputs would be most valuable for your research? I can configure multiple output types.",
                 suggestions: [
@@ -630,7 +640,7 @@ Respond appropriately to help guide the conversation forward. Be concise, health
                 addAIMessage('I apologize, but I encountered an error. Let me help you continue with the setup. Could you please try again or select one of the suggested options?');
 
                 // Show suggestions for current step
-                if (currentStep <= 9) {
+                if (currentStep <= 10) {
                     const currentFlow = conversationFlow[currentStep];
                     if (currentFlow) {
                         showSuggestions(currentFlow.suggestions);
@@ -709,11 +719,11 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             conversationData[`step${currentStep}`] = userInput;
             hasCompletedSteps.add(currentStep);
             updateStepProgress(currentStep, 'completed');
-            updateOverallProgress((hasCompletedSteps.size / 9) * 100);
+            updateOverallProgress((hasCompletedSteps.size / 10) * 100);
 
             currentStep++;
 
-            if (currentStep <= 9) {
+            if (currentStep <= 10) {
                 const nextFlow = conversationFlow[currentStep];
                 setTimeout(() => {
                     addAIMessage(nextFlow.question);
@@ -738,11 +748,11 @@ Respond appropriately to help guide the conversation forward. Be concise, health
             // Continue with normal flow
             hasCompletedSteps.add(currentStep);
             updateStepProgress(currentStep, 'completed');
-            updateOverallProgress((hasCompletedSteps.size / 9) * 100);
+            updateOverallProgress((hasCompletedSteps.size / 10) * 100);
 
             currentStep++;
 
-            if (currentStep <= 9) {
+            if (currentStep <= 10) {
                 const nextFlow = conversationFlow[currentStep];
                 addAIMessage(nextFlow.question);
                 showSuggestions(nextFlow.suggestions);
